@@ -3,7 +3,6 @@ from typing import Optional
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
-from matplotlib.colors import ListedColormap
 import seaborn as sns
 
 from .core import mofa_model
@@ -32,9 +31,9 @@ def plot_data_overview(
         Matplotlib figure and axis
     """
     if colors is not None:
-        assert set(colors.keys()) == set(
-            model.views
-        ), "Colors must be provided for all views"
+        assert set(colors.keys()) == set(model.views), (
+            "Colors must be provided for all views"
+        )
     else:
         palette = sns.color_palette("husl", len(model.views)).as_hex()
         colors = {view: palette[i] for i, view in enumerate(model.views)}

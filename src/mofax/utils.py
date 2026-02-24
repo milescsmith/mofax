@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from typing import Union, List, Optional, Iterable
+from typing import Iterable
 import h5py
 
 #######################
@@ -132,7 +132,7 @@ def _load_covariates(model):
     else:
         if "cov_samples" in model.model:
             cov_len = model.model["cov_samples"][model.groups[0]].shape[-1]
-            cov_names = [f"Covariates{i+1}" for i in range(cov_len)]
+            cov_names = [f"Covariates{i + 1}" for i in range(cov_len)]
         else:
             return None, None
 
@@ -159,7 +159,7 @@ def _load_covariates(model):
                     attr_covariates.columns = [f"{n}_transformed" for n in cov_names]
                 else:
                     attr_covariates.columns = [
-                        f"{attr}{i+1}" for i in range(attr_covariates.shape[-1])
+                        f"{attr}{i + 1}" for i in range(attr_covariates.shape[-1])
                     ]
                 samples_covariates = pd.concat(
                     [samples_covariates, attr_covariates], axis=1
@@ -200,17 +200,17 @@ def factor_indices_to_factors(x):
         return None
     elif isinstance(x, int):
         x = [x]
-    return [f"Factor{i+1}" for i in x]
+    return [f"Factor{i + 1}" for i in x]
 
 
 def maybe_factor_indices_to_factors(x):
     if x is None:
         return None
     elif isinstance(x, int):
-        return f"Factor{x+1}"
+        return f"Factor{x + 1}"
     elif isinstance(x, str):
         return x
-    return [f"Factor{i+1}" if isinstance(i, int) else i for i in x]
+    return [f"Factor{i + 1}" if isinstance(i, int) else i for i in x]
 
 
 def _is_iter(x):

@@ -3,19 +3,13 @@ from .utils import *
 
 import sys
 from warnings import warn
-from typing import Union, Optional, List, Iterable, Sequence
-from functools import partial
+from typing import Union, Optional, List, Iterable
 
 import numpy as np
-from scipy.stats import pearsonr
 import pandas as pd
-from pandas.api.types import is_numeric_dtype
 import matplotlib.pyplot as plt
 from matplotlib import rcParams
 import seaborn as sns
-
-from .utils import maybe_factor_indices_to_factors, _make_iterable, _is_iter
-from .plot_utils import _plot_grid
 
 
 ### WEIGHTS ###
@@ -345,7 +339,7 @@ def plot_weights_ranked(
         y_prev = y_loc
 
     # Set plot axes labels
-    factor_label = f"Factor{factor+1}" if isinstance(factor, int) else factor
+    factor_label = f"Factor{factor + 1}" if isinstance(factor, int) else factor
     ax.set(ylabel=f"{factor_label} weight", xlabel="Feature rank")
 
     return ax
@@ -431,8 +425,8 @@ def plot_weights_scaled(
     ax.set_yticks(np.arange(-1, 2.0, step=1.0))
 
     # Set plot axes labels
-    x_factor_label = f"Factor{x+1}" if isinstance(x, int) else x
-    y_factor_label = f"Factor{y+1}" if isinstance(y, int) else y
+    x_factor_label = f"Factor{x + 1}" if isinstance(x, int) else x
+    y_factor_label = f"Factor{y + 1}" if isinstance(y, int) else y
     ax.set(xlabel=f"{x_factor_label} weight", ylabel=f"{y_factor_label} weight")
 
     return ax
@@ -884,12 +878,12 @@ def plot_weights_correlation(
     # Generate labels for the heatmap
     if factors is None:
         factors = range(w.shape[1])
-    fnames = [f"Factor{fi+1}" if isinstance(fi, int) else fi for fi in factors]
+    fnames = [f"Factor{fi + 1}" if isinstance(fi, int) else fi for fi in factors]
     if covariates is not None:
         if isinstance(covariates, pd.DataFrame):
             cnames = covariates.columns.values
         else:
-            cnames = [f"Covar{ci+1}" for ci in covariates.shape[1]]
+            cnames = [f"Covar{ci + 1}" for ci in covariates.shape[1]]
         xticklabels = cnames if not full else np.concatenate((fnames, cnames))
         yticklabels = fnames if not full else np.concatenate((fnames, cnames))
     else:

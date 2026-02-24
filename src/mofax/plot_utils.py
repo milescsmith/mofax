@@ -1,7 +1,6 @@
 from warnings import warn
 
 import numpy as np
-import pandas as pd
 from pandas.api.types import is_numeric_dtype
 
 import matplotlib.pyplot as plt
@@ -117,7 +116,6 @@ def _plot_grid_from_1d(
         # data_ = data.sort_values(color) if color is not None and color != [None] else data
 
         with sns.axes_style("ticks"), sns.color_palette(palette or "Set2"):
-
             g = plot_func(
                 x=x if split_axis != "x" else split_var,
                 y=y if split_axis != "y" else split_var,
@@ -142,9 +140,9 @@ def _plot_grid_from_1d(
             sns.despine(offset=10, trim=True, ax=g)
 
             if split_axis == "x":
-                x_label = f"Factor{split_var+1}" if isinstance(x, int) else split_var
+                x_label = f"Factor{split_var + 1}" if isinstance(x, int) else split_var
             elif split_axis == "y":
-                y_label = f"Factor{split_var+1}" if isinstance(y, int) else split_var
+                y_label = f"Factor{split_var + 1}" if isinstance(y, int) else split_var
             g.set(
                 xlabel=f"{x_label}",
                 ylabel=f"{y_label}",

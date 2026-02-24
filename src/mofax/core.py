@@ -144,10 +144,10 @@ class mofa_model:
         mofa_repr = f"""MOFA+ model: {" ".join(self.filename.replace(".hdf5", "").split("_"))}
 Samples (cells): {self.shape[0]}
 Features: {self.shape[1]}
-Groups: {', '.join([f"{k} ({len(v)})" for k, v in self.samples.items()])}
-Views: {', '.join([f"{k} ({len(v)})" for k, v in self.features.items()])}
+Groups: {", ".join([f"{k} ({len(v)})" for k, v in self.samples.items()])}
+Views: {", ".join([f"{k} ({len(v)})" for k, v in self.features.items()])}
 Factors: {self.nfactors}
-Expectations: {', '.join(self.expectations.keys())}"""
+Expectations: {", ".join(self.expectations.keys())}"""
 
         # MEFISTO
         mefisto_repr = ""
@@ -854,7 +854,6 @@ Expectations: {', '.join(self.expectations.keys())}"""
 
         # multiple views provided as an iterable
         elif isinstance(views, Iterable) and not isinstance(views, str):
-
             # (to-do) check that all elements are of the same type
 
             # iterable of booleans
@@ -867,9 +866,9 @@ Expectations: {', '.join(self.expectations.keys())}"""
                 views = [self.views[m] if isinstance(m, int) else m for m in views]
             # iterable of strings
             elif all([isinstance(m, str) for m in views]):
-                assert set(views).issubset(
-                    set(self.views)
-                ), f"some of the elements of the 'views' are not valid views. Views names of this model are {', '.join(self.views)}."
+                assert set(views).issubset(set(self.views)), (
+                    f"some of the elements of the 'views' are not valid views. Views names of this model are {', '.join(self.views)}."
+                )
             else:
                 raise ValueError(
                     "elements of the 'view' vector have to be either integers or strings"
@@ -892,7 +891,6 @@ Expectations: {', '.join(self.expectations.keys())}"""
 
         # multiple groups provided as an iterable
         elif isinstance(groups, Iterable) and not isinstance(groups, str):
-
             # (to-do) check that all elements are of the same type
 
             # iterable of booleans
@@ -905,9 +903,9 @@ Expectations: {', '.join(self.expectations.keys())}"""
                 groups = [self.groups[g] if isinstance(g, int) else g for g in groups]
             # iterable of strings
             elif all([isinstance(g, str) for g in groups]):
-                assert set(groups).issubset(
-                    set(self.groups)
-                ), f"some of the elements of the 'groups' are not valid groups. Group names of this model are {', '.join(self.groups)}."
+                assert set(groups).issubset(set(self.groups)), (
+                    f"some of the elements of the 'groups' are not valid groups. Group names of this model are {', '.join(self.groups)}."
+                )
             else:
                 raise ValueError(
                     "elements of the 'group' vector have to be either integers or strings"
@@ -959,7 +957,7 @@ Expectations: {', '.join(self.expectations.keys())}"""
             int(fi.replace("Factor", "")) - 1 if isinstance(fi, str) else fi
             for fi in factors
         ]
-        factors = [f"Factor{fi+1}" if isinstance(fi, int) else fi for fi in factors]
+        factors = [f"Factor{fi + 1}" if isinstance(fi, int) else fi for fi in factors]
 
         return (factor_indices, factors)
 
@@ -1060,7 +1058,6 @@ Expectations: {', '.join(self.expectations.keys())}"""
             del z
 
             for view in views:
-
                 y_view = np.concatenate(
                     [self.data[view][group][:, :] for group in groups], axis=0
                 )
@@ -1125,7 +1122,7 @@ Expectations: {', '.join(self.expectations.keys())}"""
                     pd.DataFrame(
                         r2,
                         index=self.views,
-                        columns=[f"Factor{i+1}" for i in range(self.nfactors)],
+                        columns=[f"Factor{i + 1}" for i in range(self.nfactors)],
                     )
                     .rename_axis("View")
                     .reset_index()
@@ -1142,7 +1139,6 @@ Expectations: {', '.join(self.expectations.keys())}"""
             r2 = r2[r2.Factor.isin(factors)]
         # Recalculate if not pre-computed
         else:
-
             r2 = pd.DataFrame()
             factor_indices, _ = self._check_factors(factors)
             for k in factor_indices:
@@ -1246,7 +1242,6 @@ Expectations: {', '.join(self.expectations.keys())}"""
                 z_custom[group] = z[:, np.where(groups_df.iloc[:, 0] == group)[0]]
 
             for view in self.views:
-
                 y_view = np.concatenate(
                     [self.data[view][group][:, :] for group in self.groups], axis=0
                 )
@@ -1268,7 +1263,7 @@ Expectations: {', '.join(self.expectations.keys())}"""
                         {
                             "View": [view],
                             "Group": [group],
-                            "Factor": [f"Factor{factor_index+1}"],
+                            "Factor": [f"Factor{factor_index + 1}"],
                             "R2": [1 - a / b],
                             "Iteration": [i],
                         }

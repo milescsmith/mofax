@@ -1,29 +1,80 @@
 [build-system]
-# requires = ["flit"]
-# build-backend = "flit.buildapi"
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
+requires = ["uv_build>=0.7.0,<0.11.0"]
+build-backend = "uv_build"
 
-[tool.poetry]
+[project]
 name = "mofax"
-version = "0.3.7"
+version = "0.4.0"
 description = "Work with MOFA+ models in Python"
-authors = ["Danila Bredikhin <danila.bredikhin@embl.de>"]
+authors = [
+    { name = "Danila Bredikhin", email = "danila.bredikhin@embl.de"}
+]
+maintainers = [
+    { name = "Miles Smith", email = "miles-smith@omrf.org" }
+]
+license = {text = "MIT"}
+readme = {file = "README.md", content-type="text/markdown"}
+requires-python = ">=3.12"
+dependencies = [
+    "h5py>=3.15.1",
+    "matplotlib>=3.10.8",
+    "numpy>=2.0,<2.5",
+    "pandas>=2.3,<3.0",
+    "scipy>=1.17.1",
+    "seaborn>=0.13.2",
+]
+classifiers = [
+    "Programming Language :: Python",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Programming Language :: Python :: Implementation :: PyPy",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: 3 :: Only",
+    "Environment :: Console",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: GNU General Public License v3 (GPLv3)",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+    "Typing :: Typed",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
 
-[tool.poetry.dependencies]
-python = ">=3.7"
-numpy = ">=1.17.0"
-pandas = ">=1.0.0"
-h5py = ">=2.9.0"
-matplotlib = ">=3.1.0"
-seaborn = ">=0.9.0"
-scipy = "*"
+[project.urls]
+homepage = "https://github.com/user/package"
+repository = "https://github.com/user/package"
+changelog = "https://github.com/user/package/CHANGELOG.md"
 
-[tool.poetry.dev-dependencies]
-pytest = "^3.4"
 
-[tool.flit.metadata]
-module = "mofax"
-author = "Danila Bredikhin"
-author-email = "danila.bredikhin@embl.de"
-home-page = "https://github.com/gtca/mofax"
+[dependency-groups]
+dev = [
+    "ruff>=0.15.2",
+    "ty>=0.0.18",
+]
+tests = [
+    
+    "codecov>=2.1.13",
+    "coverage>=7.13.4",
+    "nox>=2026.2.9",
+    "pytest>=9.0.2",
+    "pytest-xdist>=3.8.0",
+]
+
+
+[tool.coverage.paths]
+source = ["src", "*/site-packages"]
+
+[tool.coverage.run]
+branch = true
+source = ["package"]
+
+[tool.coverage.report]
+show_missing = true
+fail_under = 100
+
+[tool.pytest.ini_options]
+pythonpath = "."
+addopts = [
+    "--import-mode=importlib",
+]
+typeguard-packages = "package"
+

@@ -1,19 +1,14 @@
-from .core import mofa_model
-from .utils import *
-
-import sys
 from warnings import warn
-from typing import Union, Optional, List, Iterable, Sequence
+from typing import Union, Optional, List
 from functools import partial
 
 import numpy as np
 from scipy.stats import pearsonr
 import pandas as pd
-from pandas.api.types import is_numeric_dtype
 import matplotlib.pyplot as plt
-from matplotlib import rcParams
 import seaborn as sns
 
+from .core import mofa_model
 from .utils import maybe_factor_indices_to_factors, _make_iterable, _is_iter
 from .plot_utils import _plot_grid
 
@@ -98,13 +93,13 @@ def plot_factors_scatter(
         color = "group"
     color_vars = maybe_factor_indices_to_factors(_make_iterable(color))
 
-    assert not (
-        len(color_vars) > 1 and dist
-    ), "When plotting distributions, only one color can be provided"
+    assert not (len(color_vars) > 1 and dist), (
+        "When plotting distributions, only one color can be provided"
+    )
 
-    assert not (
-        (_is_iter(x) or _is_iter(y)) and dist
-    ), "When plotting distributions, only scalar x and y axes can be defined"
+    assert not ((_is_iter(x) or _is_iter(y)) and dist), (
+        "When plotting distributions, only scalar x and y axes can be defined"
+    )
 
     if dist:
         # Get values
@@ -426,7 +421,6 @@ def plot_factors_violin(
     plot = partial(
         sns.violinplot,
         inner=None,
-        s=size,
     )
 
     g = _plot_grid(
@@ -439,7 +433,6 @@ def plot_factors_violin(
         zero_line_y=zero_line,
         linewidth=linewidth,
         zero_linewidth=zero_linewidth,
-        size=size,
         legend=legend,
         legend_prop=legend_prop,
         palette=palette,
@@ -868,12 +861,12 @@ def plot_factors_correlation(
     # Generate labels for the heatmap
     if factors is None:
         factors = range(z.shape[1])
-    fnames = [f"Factor{fi+1}" if isinstance(fi, int) else fi for fi in factors]
+    fnames = [f"Factor{fi + 1}" if isinstance(fi, int) else fi for fi in factors]
     if covariates is not None:
         if isinstance(covariates, pd.DataFrame):
             cnames = covariates.columns.values
         else:
-            cnames = [f"Covar{ci+1}" for ci in covariates.shape[1]]
+            cnames = [f"Covar{ci + 1}" for ci in covariates.shape[1]]
         xticklabels = cnames
         yticklabels = fnames
     else:
@@ -1043,8 +1036,8 @@ def plot_projection(
         z = zpred
 
     # Define plot axes labels
-    x_factor_label = f"Factor{x+1}" if isinstance(x, int) else x
-    y_factor_label = f"Factor{y+1}" if isinstance(y, int) else y
+    x_factor_label = f"Factor{x + 1}" if isinstance(x, int) else x
+    y_factor_label = f"Factor{y + 1}" if isinstance(y, int) else y
 
     # Set default colour to black if none set
     if "c" not in kwargs and "color" not in kwargs:

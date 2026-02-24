@@ -1,7 +1,7 @@
 from .core import mofa_model
 from .utils import *
 
-from typing import Union, Optional, List, Iterable, Sequence
+from typing import Union, List
 from functools import partial
 
 import numpy as np
@@ -134,7 +134,7 @@ def plot_interpolated_factors(
     if show_observed:
         covs = [f"{v}_transformed" for v in model.covariates_names]
         if len(covs) > 1:
-            raise NotImplemented(
+            raise NotImplementedError(
                 "Only data with a single covariate is currently supported"
             )
         z_observed = model.fetch_values([*factors, covs[0], "group"]).sort_values(
@@ -220,7 +220,6 @@ def plot_interpolated_factors(
 def plot_group_kernel(
     model, groups=None, factors=None, palette=None, vmin=-1, vmax=1, ncols=4, **kwargs
 ):
-
     z = model.get_factors(factors=factors, groups=groups)
     factor_indices, factors = model._check_factors(factors, unique=True)
 
@@ -268,7 +267,6 @@ def plot_group_kernel(
             axes = np.array(axes).reshape(1, -1)
 
         for i, factor in enumerate(factors):
-
             ri = i // ncols
             ci = i % ncols
 

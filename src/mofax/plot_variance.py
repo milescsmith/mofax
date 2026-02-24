@@ -1,21 +1,11 @@
 from .core import mofa_model
 from .utils import *
 
-import sys
-from warnings import warn
-from typing import Union, Optional, List, Iterable, Sequence
-from functools import partial
+from typing import Union, List
 
-import numpy as np
-from scipy.stats import pearsonr
 import pandas as pd
-from pandas.api.types import is_numeric_dtype
 import matplotlib.pyplot as plt
-from matplotlib import rcParams
 import seaborn as sns
-
-from .utils import maybe_factor_indices_to_factors, _make_iterable, _is_iter
-from .plot_utils import _plot_grid
 
 
 ### VARIANCE EXPLAINED ###
@@ -79,9 +69,9 @@ def plot_r2(
     vmin = 0 if vmin is None else vmin
 
     split_by = [dim for dim in ["Group", "View", "Factor"] if dim not in [x, y]]
-    assert (
-        len(split_by) == 1
-    ), "x and y values should be different and be one of Group, View, or Factor"
+    assert len(split_by) == 1, (
+        "x and y values should be different and be one of Group, View, or Factor"
+    )
     split_by = split_by[0]
 
     split_by_items = r2[split_by].unique()
