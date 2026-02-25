@@ -1,12 +1,11 @@
-from .core import mofa_model
-from .utils import *
+from typing import List, Union
 
-from typing import Union, List
-
-import pandas as pd
 import matplotlib.pyplot as plt
+import pandas as pd
 import seaborn as sns
 
+from .core import mofa_model
+from .utils import *
 
 ### VARIANCE EXPLAINED ###
 
@@ -15,8 +14,8 @@ def plot_r2(
     model: mofa_model,
     x="Group",
     y="Factor",
-    factors: Union[int, List[int], str, List[str]] = None,
-    group_label: str = None,
+    factors: Union[int, list[int], str, list[str]] | None = None,
+    group_label: str | None = None,
     views=None,
     groups=None,
     cmap="Blues",
@@ -69,9 +68,7 @@ def plot_r2(
     vmin = 0 if vmin is None else vmin
 
     split_by = [dim for dim in ["Group", "View", "Factor"] if dim not in [x, y]]
-    assert len(split_by) == 1, (
-        "x and y values should be different and be one of Group, View, or Factor"
-    )
+    assert len(split_by) == 1, "x and y values should be different and be one of Group, View, or Factor"
     split_by = split_by[0]
 
     split_by_items = r2[split_by].unique()
@@ -96,9 +93,7 @@ def plot_r2(
             # Re-order columns by factor index
             r2_df.columns = r2_df.columns.astype("category")
             r2_df.columns = r2_df.columns.reorder_categories(
-                sorted(
-                    r2_df.columns.categories, key=lambda x: int(x.split("Factor")[1])
-                )
+                sorted(r2_df.columns.categories, key=lambda x: int(x.split("Factor")[1]))
             )
             r2_df = r2_df[r2_df.columns.sort_values()]
 
@@ -126,10 +121,10 @@ def plot_r2(
 
 def plot_r2_pvalues(
     model: mofa_model,
-    factors: Union[int, List[int], str, List[str]] = None,
+    factors: Union[int, list[int], str, list[str]] | None = None,
     n_iter: int = 100,
     groups_df: pd.DataFrame = None,
-    group_label: str = None,
+    group_label: str | None = None,
     view=0,
     fdr: bool = True,
     cmap="binary_r",
@@ -168,9 +163,7 @@ def plot_r2_pvalues(
     if view is not None:
         view = model.views[view] if isinstance(view, int) else view
         r2 = r2[r2["View"] == view]
-    r2_df = r2.sort_values("PValue").pivot(
-        index="Factor", columns="Group", values=pvalue_column
-    )
+    r2_df = r2.sort_values("PValue").pivot(index="Factor", columns="Group", values=pvalue_column)
 
     # Sort by factor index
     r2_df.index = r2_df.index.astype("category")
@@ -188,10 +181,10 @@ def plot_r2_pvalues(
 
 def plot_r2_barplot(
     model: mofa_model,
-    factors: Union[int, List[int], str, List[str]] = None,
+    factors: Union[int, list[int], str, list[str]] | None = None,
     view=0,
     groups_df: pd.DataFrame = None,
-    group_label: str = None,
+    group_label: str | None = None,
     x="Factor",
     y="R2",
     groupby="Group",
@@ -228,9 +221,7 @@ def plot_r2_barplot(
     stacked : optional
         Plot a stacked barplot instead of a grouped barplot
     """
-    r2 = model.get_r2(
-        factors=factors, groups_df=groups_df, group_label=group_label, per_factor=True
-    )
+    r2 = model.get_r2(factors=factors, groups_df=groups_df, group_label=group_label, per_factor=True)
     # Select a certain view if necessary
     if view is not None:
         view = model.views[view] if isinstance(view, int) else view

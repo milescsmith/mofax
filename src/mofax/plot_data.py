@@ -1,16 +1,14 @@
-from typing import Optional
-
-import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib.patches import Rectangle
+import numpy as np
 import seaborn as sns
+from matplotlib.patches import Rectangle
 
 from .core import mofa_model
 
 
 def plot_data_overview(
     model: mofa_model,
-    colors: Optional[dict[str, str]] = None,
+    colors: dict[str, str] | None = None,
     show_dimensions: bool = True,
 ):
     """
@@ -31,9 +29,9 @@ def plot_data_overview(
         Matplotlib figure and axis
     """
     if colors is not None:
-        assert set(colors.keys()) == set(model.views), (
-            "Colors must be provided for all views"
-        )
+        if set(colors.keys()) != set(model.views):
+            msg = "Colors must be provided for all views"
+            raise AssertionError(msg)
     else:
         palette = sns.color_palette("husl", len(model.views)).as_hex()
         colors = {view: palette[i] for i, view in enumerate(model.views)}
@@ -59,12 +57,11 @@ def plot_data_overview(
     min_dim = 0.1
 
     cumulative_x, cumulative_y = 0, 0
-    total_height = 0
     heights = [0 for _ in groups]
-    for view in shapes.keys():
+    for item, view in shapes.items():
         view_width = 0
-        for group in shapes[view].keys():
-            shape = shapes[view][group]
+        for group in item.keys():
+            shape = item[group]
             x_offset = views[view]
             y_offset = groups[group]
             width = max(shape[1] * 1.0 / max_dim, min_dim)
@@ -127,8 +124,8 @@ def plot_data_overview(
         cumulative_x += view_width
         cumulative_y = 0
 
-    ax.set_xlim([0, cumulative_x + eps * len(model.views)])
-    ax.set_ylim([-(sum(heights) + eps * len(model.groups)), 0])
+    ax.set_xlim(left=0, right=(cumulative_x + eps * len(model.views)))
+    ax.set_ylim(bottom=-(sum(heights) + eps * len(model.groups)), top=0)
 
     plt.axis("off")
     return fig, ax
