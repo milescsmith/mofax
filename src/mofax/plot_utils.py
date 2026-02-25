@@ -6,8 +6,7 @@ import seaborn as sns
 from matplotlib import rcParams
 from pandas.api.types import is_numeric_dtype
 
-from .utils import *
-from .utils import _is_iter, _make_iterable
+from .utils import _is_iter, _make_iterable, maybe_factor_indices_to_factors
 
 
 def _plot_grid(plot_func, data, x, y, color=None, **kwargs):
@@ -177,11 +176,11 @@ def _plot_grid_from_1d(
                 axes[ri, ci].axvline(0, ls="--", color="lightgrey", linewidth=zero_linewidth, zorder=0)
 
         # Remove unused axes
-        for i in range(len(split_vars), ncols * nrows):
-            ri = i // ncols
-            ci = i % ncols
+        for j in range(len(split_vars), ncols * nrows):
+            rj = j // ncols
+            cj = j % ncols
             try:
-                fig.delaxes(axes[ri, ci])
+                fig.delaxes(axes[rj, cj])
             except KeyError:
                 pass
 

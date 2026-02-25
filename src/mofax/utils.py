@@ -3,6 +3,7 @@ from collections.abc import Iterable
 import h5py
 import numpy as np
 import pandas as pd
+from scipy.stats import rankdata
 
 #######################
 ## Loading metadata  ##
@@ -78,8 +79,8 @@ def _load_features_metadata(model):
                 for m in model.views
             }
 
-            for m in features_metadata_dict.keys():
-                features_metadata_dict[m].columns = list(model.model["features_metadata"][m].keys())
+            for key, value in features_metadata_dict.items():
+                value.columns = list(model.model["features_metadata"][key].keys())
 
             _features_metadata = pd.concat(features_metadata_dict, axis=0)
 
@@ -113,7 +114,7 @@ def _load_covariates(model):
     cov_names = None
     if "covariates" in model.model:
         cov_root = model.model["covariates"]
-        if (type(cov_root) == h5py.Group) and ("covariates" in cov_root):
+        if isinstance(cov_root, h5py.Group) and ("covariates" in cov_root):
             cov_root = cov_root["covariates"]
         cov_names = np.array(cov_root)
         try:
@@ -218,8 +219,6 @@ def padjust_fdr(xs):
     """
     Adjust p-values using the BH procedure
     """
-    from scipy.stats import rankdata
-
     ranked_p_values = rankdata(xs)
     fdr = xs * len(xs) / ranked_p_values
     fdr[fdr > 1] = 1
@@ -230,8 +229,6 @@ def padjust_fdr_2d(mx):
     """
     Adjust p-values in a matrix using the BH procedure
     """
-    from scipy.stats import rankdata
-
     ranked_p_values = rankdata(mx).reshape((-1, mx.shape[1]))
     fdr = mx * mx.shape[0] * mx.shape[1] / ranked_p_values
     fdr[fdr > 1] = 1

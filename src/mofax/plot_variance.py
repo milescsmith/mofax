@@ -1,11 +1,8 @@
-from typing import List, Union
-
 import matplotlib.pyplot as plt
 import pandas as pd
 import seaborn as sns
 
 from .core import mofa_model
-from .utils import *
 
 ### VARIANCE EXPLAINED ###
 
@@ -14,7 +11,7 @@ def plot_r2(
     model: mofa_model,
     x="Group",
     y="Factor",
-    factors: Union[int, list[int], str, list[str]] | None = None,
+    factors: int | list[int] | str | list[str] | None = None,
     group_label: str | None = None,
     views=None,
     groups=None,
@@ -121,9 +118,9 @@ def plot_r2(
 
 def plot_r2_pvalues(
     model: mofa_model,
-    factors: Union[int, list[int], str, list[str]] | None = None,
+    factors: int | list[int] | str | list[str] | None = None,
     n_iter: int = 100,
-    groups_df: pd.DataFrame = None,
+    groups_df: pd.DataFrame | None = None,
     group_label: str | None = None,
     view=0,
     fdr: bool = True,
@@ -181,9 +178,9 @@ def plot_r2_pvalues(
 
 def plot_r2_barplot(
     model: mofa_model,
-    factors: Union[int, list[int], str, list[str]] | None = None,
+    factors: int | list[int] | str | list[str] | None = None,
     view=0,
-    groups_df: pd.DataFrame = None,
+    groups_df: pd.DataFrame | None = None,
     group_label: str | None = None,
     x="Factor",
     y="R2",
