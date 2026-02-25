@@ -11,7 +11,7 @@ from scipy.stats import pearsonr
 
 from .core import mofa_model
 from .plot_utils import _plot_grid
-from .utils import _is_iter, _make_iterable, maybe_factor_indices_to_factors, padjust_fdr_2d
+from .utils import _make_iterable, maybe_factor_indices_to_factors, padjust_fdr_2d
 
 ### FACTORS ###
 
@@ -44,15 +44,20 @@ def plot_factors_scatter(
     samples metadata or covariates
     """
     # Process input arguments
-    if group_label == "group" and color is None:
-        color = "group"
+    if group_label not in model.metadata.columns:
+        msg = "group_label should be a column in the model's metadata. You can set it to None if you don't want to group samples."
+        raise ValueError(msg)
+    elif group_label in model.metadata.columns and color is None:
+        color = group_label
     color_vars = maybe_factor_indices_to_factors(_make_iterable(color))
 
-    assert not (len(color_vars) > 1 and dist), "When plotting distributions, only one color can be provided"
+    if dist and len(color_vars) > 1:
+        msg = "When plotting distributions, only one color can be provided"
+        raise ValueError(msg)
 
-    assert not ((_is_iter(x) or _is_iter(y)) and dist), (
-        "When plotting distributions, only scalar x and y axes can be defined"
-    )
+    if dist and (isinstance(x, list) or isinstance(y, list)):
+        msg = "When plotting distributions, only one x and one y variable can be provided"
+        raise ValueError(msg)
 
     if dist:
         # Get values
