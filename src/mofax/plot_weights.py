@@ -167,7 +167,7 @@ def plot_weights(
         # Label some points
         for fi, _factor in enumerate(wm_view.factor.cat.categories):
             for sign_i in [1, -1]:
-                features_to_label.query("factor == @factor & view == @view").feature.tolist()
+                to_label = features_to_label.query("factor == @_factor & view == @view").feature.tolist()  # noqa: F841
                 w_set = wm_view.query(
                     "factor == @factor & value * @sign_i > 0 & feature == @to_label & view == @view"
                 ).sort_values("abs_value", ascending=False)

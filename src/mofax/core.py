@@ -133,12 +133,12 @@ class mofa_model:
     def __repr__(self) -> str:
         mofa_repr = (
             f"MOFA+ model: {' '.join(self.filename.replace('.hdf5', '').split('_'))}"
-            f"Samples (cells): {self.shape[0]}"
-            f"Features: {self.shape[1]}"
-            f"Groups: {', '.join([f'{k} ({len(v)})' for k, v in self.samples.items()])}"
-            f"Views: {', '.join([f'{k} ({len(v)})' for k, v in self.features.items()])}"
-            f"Factors: {self.nfactors}"
-            f"Expectations: {', '.join(self.expectations.keys())}"
+            f"\nSamples (cells): {self.shape[0]}"
+            f"\nFeatures: {self.shape[1]}"
+            f"\nGroups: {', '.join([f'{k} ({len(v)})' for k, v in self.samples.items()])}"
+            f"\nViews: {', '.join([f'{k} ({len(v)})' for k, v in self.features.items()])}"
+            f"\nFactors: {self.nfactors}"
+            f"\nExpectations: {', '.join(self.expectations.keys())}"
         )
 
         # MEFISTO

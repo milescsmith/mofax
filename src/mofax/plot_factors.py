@@ -227,7 +227,9 @@ def plot_factors_violin(
         color = "group"
     color_vars = maybe_factor_indices_to_factors(_make_iterable(color))
 
-    assert violins or dots, "Either violins=True or dots=True"
+    if (not violins and not dots):
+        msg = "You set both violins and dots to False, so nothing will be plotted. Please set at least one of these to True."
+        raise ValueError(msg)
 
     # Get factors
     z = model.get_factors(factors=factors, df=True)
@@ -302,13 +304,13 @@ def plot_factors_violin(
     if violins:
         if violins_alpha:
             for path in g.collections:
-                if path.__class__.__name__ == "PolyCollection":
+                if "PolyCollection" in path.__class__.__name__:
                     path.set_alpha(violins_alpha)
     if violins is None or not violins or violins_alpha == 0:
         i = 0
         while i < len(g.collections):
             path = g.collections[i]
-            if path.__class__.__name__ == "PolyCollection":
+            if "PolyCollection" in path.__class__.__name__:
                 path.remove()
             else:
                 i += 1
