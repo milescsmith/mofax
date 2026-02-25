@@ -1,14 +1,13 @@
 from warnings import warn
 
+import matplotlib.pyplot as plt
 import numpy as np
+import seaborn as sns
+from matplotlib import rcParams
 from pandas.api.types import is_numeric_dtype
 
-import matplotlib.pyplot as plt
-from matplotlib import rcParams
-import seaborn as sns
-
 from .utils import *
-from .utils import _make_iterable, _is_iter
+from .utils import _is_iter, _make_iterable
 
 
 def _plot_grid(plot_func, data, x, y, color=None, **kwargs):
@@ -153,18 +152,14 @@ def _plot_grid_from_1d(
                 if is_numeric_dtype(data[color_var]):
                     means = data.groupby(color_var)[color_var].mean()
                     norm = plt.Normalize(means.min(), means.max())
-                    cmap = (
-                        palette
-                        if palette is not None
-                        else sns.cubehelix_palette(as_cmap=True)
-                    )
+                    cmap = palette if palette is not None else sns.cubehelix_palette(as_cmap=True)
                     sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
                     sm.set_array([])
                     try:
                         g.figure.colorbar(sm, ax=axes[ri, ci])
                         g.get_legend().remove()
                     except Exception:
-                        warn("Cannot make a proper colorbar")
+                        warn("Cannot make a proper colorbar", stacklevel=2)
                 else:
                     g.legend(
                         bbox_to_anchor=(1.05, 1),
@@ -177,13 +172,9 @@ def _plot_grid_from_1d(
                 plt.setp(g.get_xticklabels(), rotation=rotate_x_labels)
 
             if zero_line_y:
-                axes[ri, ci].axhline(
-                    0, ls="--", color="lightgrey", linewidth=zero_linewidth, zorder=0
-                )
+                axes[ri, ci].axhline(0, ls="--", color="lightgrey", linewidth=zero_linewidth, zorder=0)
             if zero_line_x:
-                axes[ri, ci].axvline(
-                    0, ls="--", color="lightgrey", linewidth=zero_linewidth, zorder=0
-                )
+                axes[ri, ci].axvline(0, ls="--", color="lightgrey", linewidth=zero_linewidth, zorder=0)
 
         # Remove unused axes
         for i in range(len(split_vars), ncols * nrows):

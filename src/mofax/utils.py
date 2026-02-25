@@ -1,7 +1,8 @@
-import pandas as pd
-import numpy as np
-from typing import Iterable
+from collections.abc import Iterable
+
 import h5py
+import numpy as np
+import pandas as pd
 
 #######################
 ## Loading metadata  ##
@@ -9,9 +10,7 @@ import h5py
 
 
 def _load_samples_metadata(model):
-    samples_metadata = pd.concat(
-        [pd.DataFrame({"sample": model.samples[g], "group": g}) for g in model.groups]
-    )
+    samples_metadata = pd.concat([pd.DataFrame({"sample": model.samples[g], "group": g}) for g in model.groups])
     if "samples_metadata" in model.model:
         if len(list(model.model["samples_metadata"][model.groups[0]].keys())) > 0:
             _samples_metadata = pd.concat(
@@ -27,9 +26,7 @@ def _load_samples_metadata(model):
                 ],
                 axis=0,
             )
-            _samples_metadata.columns = list(
-                model.model["samples_metadata"][model.groups[0]].keys()
-            )
+            _samples_metadata.columns = list(model.model["samples_metadata"][model.groups[0]].keys())
 
             if "group" in _samples_metadata.columns:
                 del _samples_metadata["group"]
@@ -48,9 +45,7 @@ def _load_samples_metadata(model):
             for column in samples_metadata.columns:
                 if samples_metadata[column].dtype == "object":
                     try:
-                        samples_metadata[column] = [
-                            i.decode() for i in samples_metadata[column].values
-                        ]
+                        samples_metadata[column] = [i.decode() for i in samples_metadata[column].values]
                     except (UnicodeDecodeError, AttributeError):
                         pass
 
@@ -84,9 +79,7 @@ def _load_features_metadata(model):
             }
 
             for m in features_metadata_dict.keys():
-                features_metadata_dict[m].columns = list(
-                    model.model["features_metadata"][m].keys()
-                )
+                features_metadata_dict[m].columns = list(model.model["features_metadata"][m].keys())
 
             _features_metadata = pd.concat(features_metadata_dict, axis=0)
 
@@ -107,9 +100,7 @@ def _load_features_metadata(model):
             for column in features_metadata.columns:
                 if features_metadata[column].dtype == "object":
                     try:
-                        features_metadata[column] = [
-                            i.decode() for i in features_metadata[column].values
-                        ]
+                        features_metadata[column] = [i.decode() for i in features_metadata[column].values]
                     except (UnicodeDecodeError, AttributeError):
                         pass
 
@@ -129,41 +120,30 @@ def _load_covariates(model):
             cov_names = [i.decode() for i in cov_names]
         except (UnicodeDecodeError, AttributeError):
             pass
+    elif "cov_samples" in model.model:
+        cov_len = model.model["cov_samples"][model.groups[0]].shape[-1]
+        cov_names = [f"Covariates{i + 1}" for i in range(cov_len)]
     else:
-        if "cov_samples" in model.model:
-            cov_len = model.model["cov_samples"][model.groups[0]].shape[-1]
-            cov_names = [f"Covariates{i + 1}" for i in range(cov_len)]
-        else:
-            return None, None
+        return None, None
 
     # Covariates values
     samples_covariates = pd.DataFrame(
-        [
-            [cell, group]
-            for group, cell_list in model.samples.items()
-            for cell in cell_list
-        ],
+        [[cell, group] for group, cell_list in model.samples.items() for cell in cell_list],
         columns=["sample", "group"],
     )
 
     for attr in ["cov_samples", "cov_samples_transformed"]:
         if attr in model.model:
             if len(model.model[attr].keys()) > 0:  # groups are not empty
-                attr_covariates = np.concatenate(
-                    [np.array(model.model[attr][g]) for g in model.groups]
-                )
+                attr_covariates = np.concatenate([np.array(model.model[attr][g]) for g in model.groups])
                 attr_covariates = pd.DataFrame(attr_covariates)
                 if attr == "cov_samples":
                     attr_covariates.columns = cov_names
                 elif attr == "cov_samples_transformed":
                     attr_covariates.columns = [f"{n}_transformed" for n in cov_names]
                 else:
-                    attr_covariates.columns = [
-                        f"{attr}{i + 1}" for i in range(attr_covariates.shape[-1])
-                    ]
-                samples_covariates = pd.concat(
-                    [samples_covariates, attr_covariates], axis=1
-                )
+                    attr_covariates.columns = [f"{attr}{i + 1}" for i in range(attr_covariates.shape[-1])]
+                samples_covariates = pd.concat([samples_covariates, attr_covariates], axis=1)
 
     # Covariates are None when there is only sample name and group name
     if len(samples_covariates.columns) == 2:
@@ -185,7 +165,8 @@ def _read_simple(data):
     elif isinstance(data, h5py.Dataset):
         return np.array(data)
     else:
-        raise ValueError("Attempting to read neither Group nor Dataset from HDF5 file")
+        msg = "Attempting to read neither Group nor Dataset from HDF5 file"
+        raise ValueError(msg)
 
 
 #######################

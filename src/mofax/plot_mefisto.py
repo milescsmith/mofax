@@ -1,22 +1,21 @@
-from .core import mofa_model
-from .utils import *
-
-from typing import Union, List
 from functools import partial
+from typing import List, Union
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-from matplotlib import rcParams
 import seaborn as sns
+from matplotlib import rcParams
 
-from .utils import _make_iterable
+from .core import mofa_model
 from .plot_utils import _plot_grid
+from .utils import *
+from .utils import _make_iterable
 
 
 def plot_interpolated_factors(
     model: mofa_model,
-    factors: Union[int, List[int]] = None,
+    factors: Union[int, list[int]] | None = None,
     groups=None,
     only_mean: bool = False,
     show_observed: bool = True,
@@ -88,16 +87,13 @@ def plot_interpolated_factors(
     if color is None:
         color = "group"
     if color != "group":
-        raise ValueError(
-            "Only colouring by group is supported when plotting interpolated factors"
-        )
+        msg = "Only colouring by group is supported when plotting interpolated factors"
+        raise ValueError(msg)
 
-    factors, factor_indices = model._check_factors(factors)
+    factors, _factor_indices = model._check_factors(factors)
 
     # Get factors
-    zi = model.get_interpolated_factors(
-        factors=factors, df_long=True
-    )  # this includes the group
+    zi = model.get_interpolated_factors(factors=factors, df_long=True)  # this includes the group
 
     new_values_dim = model.interpolated_factors["new_values"].shape[1]
     if new_values_dim == 1 and len(model.covariates_names) == 1:
@@ -112,9 +108,7 @@ def plot_interpolated_factors(
         zi = zi[zi["group"].isin(_make_iterable(groups))]
 
     zi_mean = (
-        zi.pivot(
-            index=["new_sample", new_value, "group"], columns="factor", values="mean"
-        )
+        zi.pivot(index=["new_sample", new_value, "group"], columns="factor", values="mean")
         .reset_index()
         .rename_axis(None, axis=1)
         .sort_values([new_value, "group"])
@@ -134,12 +128,9 @@ def plot_interpolated_factors(
     if show_observed:
         covs = [f"{v}_transformed" for v in model.covariates_names]
         if len(covs) > 1:
-            raise NotImplementedError(
-                "Only data with a single covariate is currently supported"
-            )
-        z_observed = model.fetch_values([*factors, covs[0], "group"]).sort_values(
-            ["group"]
-        )
+            msg = "Only data with a single covariate is currently supported"
+            raise NotImplementedError(msg)
+        z_observed = model.fetch_values([*factors, covs[0], "group"]).sort_values(["group"])
         # Subset groups
         if groups is not None:
             z_observed = z_observed[z_observed["group"].isin(_make_iterable(groups))]
@@ -164,7 +155,10 @@ def plot_interpolated_factors(
 
             # Add confidence intervals
             if not only_mean:
-                get_conf = lambda f, mean, var: f(mean, 1.96 * np.sqrt(var))
+
+                def get_conf(f, mean, var):
+                    return f(mean, 1.96 * np.sqrt(var))
+
                 for group in m[color_var].unique():
                     m_g = m[m[color_var] == group]
                     v_g = v[v[color_var] == group]
@@ -187,9 +181,7 @@ def plot_interpolated_factors(
                     ax=ax,
                 )
 
-        modifier = partial(
-            modifier, data={"mean": zi_mean, "var": zi_var, "observed": z_observed}
-        )
+        modifier = partial(modifier, data={"mean": zi_mean, "var": zi_var, "observed": z_observed})
 
     g = _plot_grid(
         plot,
@@ -217,10 +209,8 @@ def plot_interpolated_factors(
 ### MEFISTO ###
 
 
-def plot_group_kernel(
-    model, groups=None, factors=None, palette=None, vmin=-1, vmax=1, ncols=4, **kwargs
-):
-    z = model.get_factors(factors=factors, groups=groups)
+def plot_group_kernel(model, groups=None, factors=None, palette=None, vmin=-1, vmax=1, ncols=4, **kwargs):
+    model.get_factors(factors=factors, groups=groups)
     factor_indices, factors = model._check_factors(factors, unique=True)
 
     groups = model._check_groups(groups)
@@ -228,13 +218,9 @@ def plot_group_kernel(
     group_indices = [np.where(all_groups == gr)[0][0] for gr in groups]
 
     # Get group kernels
-    Kgs = model.get_group_kernel()[factor_indices, :, :][:, group_indices, :][
-        :, :, group_indices
-    ]
+    Kgs = model.get_group_kernel()[factor_indices, :, :][:, group_indices, :][:, :, group_indices]
 
-    df_list = [
-        pd.DataFrame(Kgs[i], index=groups, columns=groups) for i in range(Kgs.shape[0])
-    ]
+    df_list = [pd.DataFrame(Kgs[i], index=groups, columns=groups) for i in range(Kgs.shape[0])]
 
     if palette is None:
         palette = "RdBu_r"
@@ -295,15 +281,13 @@ def plot_group_kernel(
     return g
 
 
-def plot_sharedness(
-    model, groups=None, factors=None, color="#B8CF87", return_data=False, **kwargs
-):
+def plot_sharedness(model, groups=None, factors=None, color="#B8CF87", return_data=False, **kwargs):
     GROUPS_MSG = "Multiple groups are required to determine sharedness"
     assert model.ngroups > 1, GROUPS_MSG
     if groups is not None:
         assert not isinstance(groups, str) and len(groups) > 1, GROUPS_MSG
 
-    z = model.get_factors(factors=factors, groups=groups)
+    model.get_factors(factors=factors, groups=groups)
     factor_indices, factors = model._check_factors(factors, unique=True)
 
     groups = model._check_groups(groups)
@@ -311,17 +295,10 @@ def plot_sharedness(
     group_indices = [np.where(all_groups == gr)[0][0] for gr in groups]
 
     # Get group kernels
-    Kgs = model.get_group_kernel()[factor_indices, :, :][:, group_indices, :][
-        :, :, group_indices
-    ]
+    Kgs = model.get_group_kernel()[factor_indices, :, :][:, group_indices, :][:, :, group_indices]
 
     # Calculate distance
-    gr = np.array(
-        [
-            np.abs(Kgs[i, :, :])[np.tril(Kgs[i, :, :], -1).astype(bool)].mean()
-            for i in range(Kgs.shape[0])
-        ]
-    )
+    gr = np.array([np.abs(Kgs[i, :, :])[np.tril(Kgs[i, :, :], -1).astype(bool)].mean() for i in range(Kgs.shape[0])])
 
     df = pd.DataFrame({"factor": factors, "shared": gr, "non_shared": 1 - gr})
 
@@ -341,8 +318,8 @@ def plot_sharedness(
 
 
 def plot_smoothness(model, factors=None, color="#5F9EA0", return_data=False, **kwargs):
-    z = model.get_factors(factors=factors)
-    factor_indices, factors = model._check_factors(factors, unique=True)
+    model.get_factors(factors=factors)
+    _factor_indices, factors = model._check_factors(factors, unique=True)
 
     # Get scales
     scales = np.array(model.model["training_stats"]["scales"])

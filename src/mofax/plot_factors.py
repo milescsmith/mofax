@@ -1,101 +1,54 @@
-from warnings import warn
-from typing import Union, Optional, List
+from collections.abc import Callable, Mapping, Sequence
 from functools import partial
+from typing import Any
+from warnings import warn
 
-import numpy as np
-from scipy.stats import pearsonr
-import pandas as pd
 import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
 import seaborn as sns
+from scipy.stats import pearsonr
 
 from .core import mofa_model
-from .utils import maybe_factor_indices_to_factors, _make_iterable, _is_iter
 from .plot_utils import _plot_grid
-
+from .utils import _is_iter, _make_iterable, maybe_factor_indices_to_factors
 
 ### FACTORS ###
 
 
 def plot_factors_scatter(
     model: mofa_model,
-    x="Factor1",
-    y="Factor2",
-    dist=False,
-    groups=None,
-    group_label="group",
-    color=None,
-    zero_line_x=False,
-    zero_line_y=False,
-    linewidth=0,
-    zero_linewidth=1,
-    size=20,
-    legend=True,
-    legend_str=True,
-    legend_prop=None,
-    palette=None,
-    ncols=4,
-    sharex=False,
-    sharey=False,
-    rotate_x_labels=None,
-    **kwargs,
-):
+    x: str | int | list[str | int] = "Factor1",
+    y: str | int | list[str | int] = "Factor2",
+    dist: bool = False,
+    groups: Sequence[Any] | None = None,
+    group_label: str = "group",
+    color: str | int | list[str | int] | None = None,
+    zero_line_x: bool = False,
+    zero_line_y: bool = False,
+    linewidth: float = 0,
+    zero_linewidth: float = 1,
+    size: float = 20,
+    legend: bool = True,
+    legend_str: bool = True,
+    legend_prop: Any | None = None,
+    palette: Any | None = None,
+    ncols: int = 4,
+    sharex: bool = False,
+    sharey: bool = False,
+    rotate_x_labels: int | None = None,
+    **kwargs: Any,
+) -> Any:
     """
     Plot samples features such as factor values,
     samples metadata or covariates
-
-    Parameters
-    ----------
-    model : mofa_model
-        Factor model
-    x : optional
-        Factor or variable (metadata column, feature, or covariate) to plot along X axis (Factor1 by default).
-        A list can be provided to create a grid of plots.
-    y : optional
-        Factor or variable (metadata column, feature, or covariate) to plot along Y axis (Factor2 by default).
-        A list can be provided to create a grid of plots.
-    dist : optional
-        Boolean value if to add marginal distributions or histograms to the scatterplot (jointplot)
-    groups : optional
-        Subset of groups to consider
-    group_label : optional
-        Sample (cell) metadata column to be used as group assignment ('group' by default)
-    color : optional
-        Grouping variable by default, alternatively a feature name can be provided (when no kde).
-        If a list of features is provided, they will be plot on one figure.
-        Use palette argument to provide a colour map.
-    zero_line : optional
-        Boolean values if to add Z=0 line
-    linewidth : optional
-        Linewidth argument for dots (default is 0)
-    zero_linewidth : optional
-        Linewidth argument for the zero line (default is 1)
-    size : optional
-        Size argument for dots (ms for plot, s for jointplot and scatterplot; default is 5)
-    legend : optional bool
-        If to show the legend (e.g. colours matching groups)
-    legend_prop : optional
-        The font properties of the legend
-    palette : optional
-        cmap describing colours, default is None (cubehelix)
-        Example palette: seaborn.cubehelix_palette(8, start=.5, rot=-.75. as_cmap=True)
-    ncols : optional
-        Number of columns if multiple colours are defined (4 by default)
-    sharex: optional
-        Common X axis across plots on the grid
-    sharey: optional
-        Common Y axis across plots on the grid
-    rotate_x_labels: int, optional
-        Rotate x-axis labels (default is None)
     """
-
     # Process input arguments
     if group_label == "group" and color is None:
         color = "group"
     color_vars = maybe_factor_indices_to_factors(_make_iterable(color))
 
-    assert not (len(color_vars) > 1 and dist), (
-        "When plotting distributions, only one color can be provided"
-    )
+    assert not (len(color_vars) > 1 and dist), "When plotting distributions, only one color can be provided"
 
     assert not ((_is_iter(x) or _is_iter(y)) and dist), (
         "When plotting distributions, only scalar x and y axes can be defined"
@@ -108,7 +61,7 @@ def plot_factors_scatter(
         # Add group and colour information
         vars = [group_label, *color_vars]
         vars = [v for v in vars if v not in z.columns]
-        if any([not (not (i)) for i in vars]):
+        if any(not (not (i)) for i in vars):
             meta = model.fetch_values(variables=vars)
             z = z.rename_axis("sample").reset_index()
             z = z.set_index("sample").join(meta).reset_index()
@@ -131,13 +84,9 @@ def plot_factors_scatter(
         sns.despine(offset=10, trim=True, ax=g.ax_joint)
         x_factor_label = maybe_factor_indices_to_factors(x)
         y_factor_label = maybe_factor_indices_to_factors(y)
-        g.ax_joint.set(
-            xlabel=f"{x_factor_label} value", ylabel=f"{y_factor_label} value"
-        )
+        g.ax_joint.set(xlabel=f"{x_factor_label} value", ylabel=f"{y_factor_label} value")
         if legend:
-            g.ax_joint.legend(
-                bbox_to_anchor=(1.4, 1), loc=2, borderaxespad=0.0, prop=legend_prop
-            )
+            g.ax_joint.legend(bbox_to_anchor=(1.4, 1), loc=2, borderaxespad=0.0, prop=legend_prop)
         if zero_line_y:
             g.axhline(0, ls="--", color="lightgrey", linewidth=linewidth, zorder=0)
         if zero_line_x:
@@ -179,75 +128,30 @@ plot_factors = plot_factors_scatter
 
 
 def _plot_factors(
-    plot_func,
+    plot_func: Callable[..., Any],
     model: mofa_model,
-    x="Factor1",
-    y="Factor2",
-    color=None,
-    groups=None,
-    group_label="group",
-    zero_line_x=False,
-    zero_line_y=False,
-    linewidth=0,
-    zero_linewidth=1,
-    legend=True,
-    legend_prop=None,
-    palette=None,
-    ncols=4,
-    sharex=False,
-    sharey=False,
-    rotate_x_labels=None,
-    **kwargs,
-):
+    x: str | int | list[str | int] = "Factor1",
+    y: str | int | list[str | int] = "Factor2",
+    color: str | int | list[str | int] | None = None,
+    groups: Sequence[Any] | None = None,
+    group_label: str = "group",
+    zero_line_x: bool = False,
+    zero_line_y: bool = False,
+    linewidth: float = 0,
+    zero_linewidth: float = 1,
+    legend: bool = True,
+    legend_prop: Any | None = None,
+    palette: Any | None = None,
+    ncols: int = 4,
+    sharex: bool = False,
+    sharey: bool = False,
+    rotate_x_labels: int | None = None,
+    **kwargs: Any,
+) -> Any:
     """
     Plot samples features such as factor values,
     samples metadata or covariates
-
-    Parameters
-    ----------
-    model : mofa_model
-        Factor model
-    x : optional
-        Factor or variable (metadata column, feature, or covariate) to plot along X axis (Factor1 by default).
-        A list can be provided to create a grid of plots.
-    y : optional
-        Factor or variable (metadata column, feature, or covariate) to plot along Y axis (Factor2 by default).
-        A list can be provided to create a grid of plots.
-    dist : optional
-        Boolean value if to add marginal distributions or histograms to the scatterplot (jointplot)
-    groups : optional
-        Subset of groups to consider
-    group_label : optional
-        Sample (cell) metadata column to be used as group assignment ('group' by default)
-    color : optional
-        Grouping variable by default, alternatively a feature name can be provided (when no kde).
-        If a list of features is provided, they will be plot on one figure.
-        Use palette argument to provide a colour map.
-    zero_line : optional
-        Boolean values if to add Z=0 line
-    linewidth : optional
-        Linewidth argument for dots (default is 0)
-    zero_linewidth : optional
-        Linewidth argument for the zero line (default is 1)
-    size : optional
-        Size argument for dots (ms for plot, s for jointplot and scatterplot; default is 5)
-    legend : optional bool
-        If to show the legend (e.g. colours matching groups)
-    legend_prop : optional
-        The font properties of the legend
-    palette : optional
-        cmap describing colours, default is None (cubehelix)
-        Example palette: seaborn.cubehelix_palette(8, start=.5, rot=-.75. as_cmap=True)
-    ncols : optional
-        Number of columns if multiple colours are defined (4 by default)
-    sharex: optional
-        Common X axis across plots on the grid
-    sharey: optional
-        Common Y axis across plots on the grid
-    rotate_x_labels: int, optional
-        Rotate x-axis labels (default is None)
     """
-
     # Process input arguments
     if group_label == "group" and color is None:
         color = "group"
@@ -263,7 +167,7 @@ def _plot_factors(
     # Add group and colour information
     vars = [group_label, *color_vars]
     vars = [v for v in vars if v not in z.columns]
-    if any([not (not (i)) for i in vars]):
+    if any(not (not (i)) for i in vars):
         meta = model.fetch_values(variables=vars)
         z = z.rename_axis("sample").reset_index()
         z = z.set_index("sample").join(meta).reset_index()
@@ -297,76 +201,29 @@ def _plot_factors(
 
 def plot_factors_violin(
     model: mofa_model,
-    factors: Union[int, List[int]] = None,
-    color="group",
-    violins=True,
-    dots=False,
-    zero_line=True,
-    group_label="group",
-    groups=None,
-    linewidth=0,
-    zero_linewidth=1,
-    size=20,
-    legend=True,
-    legend_prop=None,
-    palette=None,
-    alpha=None,
-    violins_alpha=None,
-    ncols=4,
-    sharex=False,
-    sharey=False,
-    **kwargs,
-):
+    factors: int | list[int] | None = None,
+    color: str | int | list[str | int] | None = "group",
+    violins: bool = True,
+    dots: bool = False,
+    zero_line: bool = True,
+    group_label: str = "group",
+    groups: Sequence[Any] | None = None,
+    linewidth: float = 0,
+    zero_linewidth: float = 1,
+    size: float = 20,
+    legend: bool = True,
+    legend_prop: Any | None = None,
+    palette: Any | None = None,
+    alpha: float | None = None,
+    violins_alpha: float | None = None,
+    ncols: int = 4,
+    sharex: bool = False,
+    sharey: bool = False,
+    **kwargs: Any,
+) -> Any:
     """
     Plot factor values as violinplots or stripplots (jitter plots)
-
-    Parameters
-    ----------
-    model : mofa_model
-        Factor model
-    factors : optional
-        Index of a factor (or indices of factors) to use (all factors by default)
-    x : optional
-        Variable to plot along X axis (factor identity by default)
-    y : optional
-        Variable to plot along Y axis (factor value by default)
-    color : optional
-        Variable to split & colour dots by (cell group by default)
-    groups : optional
-        Subset of groups to consider
-    group_label : optional
-        Sample (cell) metadata column to be used as group assignment ('group' by default)
-    violins : optional
-        Boolean value if to add violin plots
-    dots : optional
-        Boolean value if to add dots to the plots
-    zero_line : optional
-        Boolean values if to add Z=0 line
-    linewidth : optional
-        Linewidth argument for dots (default is 0)
-    zero_linewidth : optional
-        Linewidth argument for the zero line (default is 1)
-    size : optional
-        Size argument for dots (ms for plot, s for jointplot and scatterplot; default is 5)
-    legend : optional bool
-        If to show the legend (e.g. colours matching groups)
-    legend_prop : optional
-        The font properties of the legend
-    palette : optional
-        cmap describing colours, default is None (cubehelix)
-        Example palette: seaborn.cubehelix_palette(8, start=.5, rot=-.75. as_cmap=True)
-    alpha : optional
-        Dots opacity
-    violins_alpha : optional
-        Violins opacity
-    ncols : optional
-        Number of columns if multiple colours are defined (4 by default)
-    sharex: optional
-        Common X axis across plots on the grid
-    sharey: optional
-        Common Y axis across plots on the grid
     """
-
     # Process input arguments
     if group_label == "group" and color is None:
         color = "group"
@@ -382,7 +239,7 @@ def plot_factors_violin(
 
     # Add group and colour information
     vars = [group_label, *color_vars]
-    if any([not (not (i)) for i in vars]):
+    if any(not (not (i)) for i in vars):
         meta = model.fetch_values(variables=vars)
         z = z.set_index("sample").join(meta).reset_index()
 
@@ -393,16 +250,16 @@ def plot_factors_violin(
     z["factor_idx"] = z.factor.str.lstrip("Factor").astype(int)
     z = z.sort_values(by="factor_idx")
 
-    modifier = None
+    modifier: Callable[..., Any] | None = None
     if dots:
 
         def modifier(
-            data,
-            ax,
-            split_var,
-            color_var,
-            alpha=alpha,
-        ):
+            data: pd.DataFrame,
+            ax: Any,
+            split_var: Any,
+            color_var: Any,
+            alpha: float | None = alpha,
+        ) -> None:
             # Add dots
             sns.stripplot(
                 data=z,
@@ -450,7 +307,6 @@ def plot_factors_violin(
                 if path.__class__.__name__ == "PolyCollection":
                     path.set_alpha(violins_alpha)
     if violins is None or not violins or violins_alpha == 0:
-        n_plots = len(g.collections)
         i = 0
         while i < len(g.collections):
             path = g.collections[i]
@@ -464,75 +320,40 @@ def plot_factors_violin(
 
 def plot_factors_umap(
     model: mofa_model,
-    factors: Optional[Union[int, List[int]]] = None,
-    groups=None,
-    group_label: Optional[str] = None,
-    color=None,
-    linewidth=0,
-    size=20,
-    n_neighbors=10,
-    spread=1,
-    min_dist=0.5,
-    random_state=None,
-    umap_kwargs={},
-    legend=True,
-    legend_prop=None,
-    palette=None,
-    ncols=4,
-    sharex=False,
-    sharey=False,
-    **kwargs,
-):
+    factors: int | list[int] | None = None,
+    groups: Sequence[Any] | None = None,
+    group_label: str | None = None,
+    color: str | int | list[str | int] | None = None,
+    linewidth: float = 0,
+    size: float = 20,
+    n_neighbors: int = 10,
+    spread: float = 1,
+    min_dist: float = 0.5,
+    random_state: int | None = None,
+    umap_kwargs: Mapping[str, Any] = {},
+    legend: bool = True,
+    legend_prop: Any | None = None,
+    palette: Any | None = None,
+    ncols: int = 4,
+    sharex: bool = False,
+    sharey: bool = False,
+    **kwargs: Any,
+) -> Any:
     """
     Plot UMAP on factor values.
-
-    Parameters
-    ----------
-    model : mofa_model
-        Factor model
-    factors : optional
-        Index of a factor (or indices of factors) to use (all factors by default)
-    groups : optional
-        Subset of groups to consider
-    group_label : optional
-        Sample (cell) metadata column to be used as group assignment
-    color : optional
-        Grouping variable by default, alternatively a feature name can be provided
-    linewidth : optional
-        Linewidth argument for dots (default is 0)
-    size : optional
-        Size argument for dots (ms for plot, s for jointplot and scatterplot; default is 5)
-    n_neighbors : optional
-        n_neighbors parameter for UMAP
-    spread : optional
-        spread parameter for UMAP
-    random_state : optional
-        random_state parameter for UMAP
-    umap_kwargs : optional
-        Additional arguments to umap.UMAP()
-    legend : optional bool
-        If to show the legend (e.g. colours matching groups)
-    legend_prop : optional
-        The font properties of the legend
-    palette : optional
-        cmap describing colours, default is None (cubehelix)
-        Example palette: seaborn.cubehelix_palette(8, start=.5, rot=-.75. as_cmap=True)
-    ncols : optional
-        Number of columns if multiple colours are defined (4 by default)
     """
-
     # Process input arguments
     if group_label == "group" and not color:
         color = "group"
     color_vars = maybe_factor_indices_to_factors(_make_iterable(color))
 
     # Check if UMAP has be pre-computed
-    get_umap_cols = lambda m: np.where(
-        [s.startswith("UMAP") for s in m.samples_metadata.columns.values]
-    )[0]
+    def get_umap_cols(m):
+        return np.where([s.startswith("UMAP") for s in m.samples_metadata.columns.values])[0]
+
     umap_cols = get_umap_cols(model)
+
     if len(umap_cols) == 0:
-        print("Computing UMAP coordinates...")
         model.run_umap(
             factors=factors,
             n_neighbors=n_neighbors,
@@ -549,7 +370,7 @@ def plot_factors_umap(
     # Add group and colour information
     vars = [group_label, *color_vars]
     vars = [v for v in vars if v not in embedding.columns.values]
-    if any([not (not (i)) for i in vars]):
+    if any(not (not (i)) for i in vars):
         meta = model.fetch_values(variables=vars)
         embedding = embedding.rename_axis("sample").reset_index()
         embedding = embedding.set_index("sample").join(meta).reset_index()
@@ -590,34 +411,18 @@ def plot_factors_umap(
 
 def plot_factors_matrix(
     model: mofa_model,
-    factors: Optional[Union[int, List[int], str, List[str]]] = None,
-    group_label: Optional[str] = None,
-    groups: Optional[Union[int, List[int], str, List[str]]] = None,
-    agg="mean",
-    cmap="viridis",
-    vmin=None,
-    vmax=None,
-    **kwargs,
-):
+    factors: int | list[int] | str | list[str] | None = None,
+    group_label: str | None = None,
+    groups: int | list[int] | str | list[str] | None = None,
+    agg: str | Callable[..., Any] = "mean",
+    cmap: str = "viridis",
+    vmin: float | None = None,
+    vmax: float | None = None,
+    **kwargs: Any,
+) -> Any:
     """
     Average factor value per group and plot it as a heatmap
-
-    Parameters
-    ----------
-    model : mofa_model
-        Factor model
-    factors : optional
-        Factor idices or names (all factors by default)
-    group_label : optional
-        Sample (cell) metadata column to be used as group assignment
-    groups : optional
-        Group indices or names (all groups by default)
-    avg : optional
-        Aggregation function to average factor values per group (mean by default)
-    cmap : optional
-        Heatmap cmap argument ("viridis" by default)
     """
-
     z = model.get_factors(factors=factors, groups=groups, df=True)
     z = z.rename_axis("sample").reset_index()
     # Make the table long for plotting
@@ -641,9 +446,7 @@ def plot_factors_matrix(
     )
 
     z.index = z.index.astype("category")
-    z.index = z.index.reorder_categories(
-        sorted(z.index.categories, key=lambda x: int(x.split("Factor")[1]))
-    )
+    z.index = z.index.reorder_categories(sorted(z.index.categories, key=lambda x: int(x.split("Factor")[1])))
     z = z.sort_values("factor", ascending=False)
 
     ax = sns.heatmap(z, cmap=cmap, vmin=vmin, vmax=vmax, **kwargs)
@@ -655,46 +458,22 @@ def plot_factors_matrix(
 
 def plot_factors_dotplot(
     model: mofa_model,
-    factors: Optional[Union[int, List[int], str, List[str]]] = None,
-    group_label: Optional[str] = None,
-    groups: Optional[Union[int, List[int], str, List[str]]] = None,
-    palette=None,
-    vmin=None,
-    vmax=None,
-    size=100,
-    xticklabels_size=8,
-    yticklabels_size=8,
-    **kwargs,
-):
+    factors: int | list[int] | str | list[str] | None = None,
+    group_label: str | None = None,
+    groups: int | list[int] | str | list[str] | None = None,
+    palette: Any | None = None,
+    vmin: float | None = None,
+    vmax: float | None = None,
+    size: float = 100,
+    xticklabels_size: int = 8,
+    yticklabels_size: int = 8,
+    **kwargs: Any,
+) -> Any:
     """
-    Average factor value per group and plot it as a heatmap.
+    Average factor value per group and plot it as a dotplot.
     Colour indicates mean factor value
     and size relates to its variance.
-
-    Parameters
-    ----------
-    model : mofa_model
-        Factor model
-    factors : optional
-        Factor idices or names (all factors by default)
-    group_label : optional
-        Sample (cell) metadata column to be used as group assignment
-    groups : optional
-        Group indices or names (all groups by default)
-    palette : optional
-        Colour palette (blue-white-red by default)
-    vmin : optional
-        Min color value
-    vmax : optional
-        Max colour value
-    size : optional
-        Dot plot size scaling coefficient
-    xticklabels_size : optional
-        Font size for features labels (default is 10)
-    yticklabels_size : optional
-        Font size for factors labels (default is None)
     """
-
     if palette is None:
         palette = sns.diverging_palette(240, 10, sep=3, center="light", as_cmap=True)
 
@@ -718,9 +497,7 @@ def plot_factors_dotplot(
     z["abs_mean"] = np.abs(z.value_mean)
 
     z.factor = z.factor.astype("category")
-    z.factor = z.factor.cat.reorder_categories(
-        sorted(z.factor.cat.categories, key=lambda x: int(x.split("Factor")[1]))
-    )
+    z.factor = z.factor.cat.reorder_categories(sorted(z.factor.cat.categories, key=lambda x: int(x.split("Factor")[1])))
     z = z.sort_values("factor")
 
     # Fix group order
@@ -748,7 +525,7 @@ def plot_factors_dotplot(
     z.value_var = z.value_var / z.value_var.max() * size
 
     # Create the plot
-    fig, ax = plt.subplots()
+    _fig, ax = plt.subplots()
     g = plt.scatter(
         x=z.factor,
         y=z.group,
@@ -768,7 +545,7 @@ def plot_factors_dotplot(
         g.figure.colorbar(sm)
         g.get_legend().remove()
     except Exception:
-        warn("Cannot make a proper colorbar")
+        warn("Cannot make a proper colorbar", stacklevel=2)
 
     plt.xticks(rotation=90, size=xticklabels_size)
     plt.yticks(size=yticklabels_size)
@@ -780,41 +557,19 @@ def plot_factors_dotplot(
 
 def plot_factors_correlation(
     model: mofa_model,
-    factors: Optional[Union[int, List[int]]] = None,
-    groups: Optional[Union[int, List[int], str, List[str]]] = None,
-    covariates=None,
-    pvalues=False,
-    linewidths=0,
-    diag=False,
-    cmap=None,
-    square=True,
-    **kwargs,
-):
+    factors: int | list[int] | None = None,
+    groups: int | list[int] | str | list[str] | None = None,
+    covariates: np.ndarray | pd.DataFrame | None = None,
+    pvalues: bool = False,
+    linewidths: float = 0,
+    diag: bool = False,
+    cmap: Any | None = None,
+    square: bool = True,
+    **kwargs: Any,
+) -> Any:
     """
     Plot correlation of factors and, if provided, covariates
-
-    Parameters
-    ----------
-    model : mofa_model
-        Factor model
-    factors : optional
-        Index of a factor (or indices of factors) to use (all factors by default)
-    groups : optional
-        Subset of groups to consider
-    covarites : optional
-        A vector, a matrix, or a data frame with covariates (one per column)
-    pvalues
-        Plot BH-adjusted p-values instead of correlation coefficient
-    linewidths : optional
-        Heatmap linewidths argument (default is 0)
-    diag : optional
-        If to only plot lower triangle of the correlation matrix (False by default)
-    cmap : optional
-        Heatmap cmap argument
-    square : optional
-        Heatmap square argument (True by default)
     """
-
     z = model.get_factors(factors=factors, groups=groups)
 
     # pearsonr returns (r, pvalue)
@@ -843,7 +598,7 @@ def plot_factors_correlation(
         corr = -np.log10(corr)
 
         if np.sum(np.isinf(corr)) > 0:
-            warn("Some p-values are 0, these values will be capped.")
+            warn("Some p-values are 0, these values will be capped.", stacklevel=2)
             corr[np.isinf(corr)] = np.ceil(corr[~np.isinf(corr)].max() * 10)
 
     mask = None
@@ -852,7 +607,7 @@ def plot_factors_correlation(
         mask = np.triu(np.ones_like(corr, dtype=np.bool))
 
     # Set up the matplotlib figure
-    f, ax = plt.subplots()
+    _f, _ax = plt.subplots()
 
     if cmap is None:
         # Generate a custom diverging colormap
@@ -875,9 +630,7 @@ def plot_factors_correlation(
 
     center = 0 if not pvalues else None
     cbar_kws = {"shrink": 0.5}
-    cbar_kws["label"] = (
-        "Correlation coefficient" if not pvalues else "-log10(adjusted p-value)"
-    )
+    cbar_kws["label"] = "Correlation coefficient" if not pvalues else "-log10(adjusted p-value)"
 
     # Draw the heatmap with the mask and correct aspect ratio
     g = sns.heatmap(
@@ -900,27 +653,14 @@ def plot_factors_correlation(
 
 def plot_factors_covariates_correlation(
     model: mofa_model,
-    covariates: Union[np.ndarray, np.matrix, pd.DataFrame],
+    covariates: np.ndarray | np.matrix | pd.DataFrame,
     pvalues: bool = False,
-    **kwargs,
-):
+    **kwargs: Any,
+) -> Any:
     """
     Plot correlation of factors and covariates
-
-    Parameters
-    ----------
-    model : mofa_model
-        Factor model
-    covarites
-        A vector, a matrix, or a data frame with covariates (one per column)
-    pvalues
-        Plot BH-adjusted p-values instead of correlation coefficient
-    **kwargs
-        Other arguments to plot_factors_correlation
     """
-    return plot_factors_correlation(
-        model, covariates=covariates, pvalues=pvalues, square=False, **kwargs
-    )
+    return plot_factors_correlation(model, covariates=covariates, pvalues=pvalues, square=False, **kwargs)
 
 
 ### Projection ###
@@ -928,63 +668,25 @@ def plot_factors_covariates_correlation(
 
 def plot_projection(
     model: mofa_model,
-    data,
+    data: np.ndarray | pd.DataFrame,
     data_name: str = "projected_data",
-    view: Union[str, int] = None,
+    view: str | int | None = None,
     with_orig: bool = False,
-    x="Factor1",
-    y="Factor2",
-    groups=None,
-    groups_df=None,
-    color=None,
-    linewidth=0,
-    size=20,
-    legend=False,
-    legend_loc="best",
-    legend_prop=None,
-    feature_intersection=False,
-    **kwargs,
-):
+    x: str | int = "Factor1",
+    y: str | int = "Factor2",
+    groups: Sequence[Any] | None = None,
+    groups_df: pd.DataFrame | None = None,
+    color: str | None = None,
+    linewidth: float = 0,
+    size: float = 20,
+    legend: bool = False,
+    legend_loc: str = "best",
+    legend_prop: Any | None = None,
+    feature_intersection: bool = False,
+    **kwargs: Any,
+) -> Any:
     """
     Project new data onto the factor space of the model.
-
-    For the projection, a pseudo-inverse of the weights matrix is calculated
-    and its product with the provided data matrix is calculated.
-
-    Parameters
-    ----------
-    model : mofa_model
-        Factor model
-    data
-        Numpy array or Pandas DataFrame with the data matching the number of features
-    data_name : optional
-        A name for the projected dataset ("projected_data" by default)
-    view : optional
-        A view of the model to consider (first view by default)
-    with_orig : optional
-        Boolean value if to plot data from the model (False by default)
-    x : optional
-        Factor to plot along X axis (Factor1 by default)
-    y : optional
-        Factor to plot along Y axis (Factor2 by default)
-    groups : optional
-        Subset of groups to consider
-    groups_df : optional pd.DataFrame
-        Data frame with samples (cells) as index and first column as group assignment
-    color : optional
-        A feature name to colour the dots by its expression
-    linewidth : optional
-        Linewidth argument for dots (default is 0)
-    size : optional
-        Size argument for dots (ms for plot, s for jointplot and scatterplot; default is 5)
-    legend : optional bool
-        If to show the legend (e.g. colours matching groups)
-    legend_loc : optional
-        Legend location (e.g. 'upper left', 'center', or 'best')
-    legend_prop : optional
-        The font properties of the legend
-    feature_intersection : optional
-        Feature intersection flag for project_data
     """
     zpred = model.project_data(
         data=data,
@@ -1023,12 +725,11 @@ def plot_projection(
     # Assign colour to every sample (cell) in the new data if colouring by feature expression
     if color is None:
         color_var = grouping_var
-    else:
-        if isinstance(data, pd.DataFrame):
-            color_var = color
-            color_df = data.loc[:, [color]]
-            zpred = zpred.join(color_df).reset_index()
-            zpred = zpred.sort_values(color_var)
+    elif isinstance(data, pd.DataFrame):
+        color_var = color
+        color_df = data.loc[:, [color]]
+        zpred = zpred.join(color_df).reset_index()
+        zpred = zpred.sort_values(color_var)
 
     if with_orig:
         z = z.append(zpred)

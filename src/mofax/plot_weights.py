@@ -1,16 +1,16 @@
-from .core import mofa_model
-from .utils import *
-
 import sys
+from collections.abc import Iterable
+from typing import List, Optional, Union
 from warnings import warn
-from typing import Union, Optional, List, Iterable
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-from matplotlib import rcParams
 import seaborn as sns
+from matplotlib import rcParams
 
+from .core import mofa_model
+from .utils import *
 
 ### WEIGHTS ###
 
@@ -116,9 +116,7 @@ def plot_weights(
         kwargs["color"] = "black"
 
     # Fetch top features to label
-    features_to_label = model.get_top_features(
-        factors=factors, views=views, n_features=n_features, df=True
-    )
+    features_to_label = model.get_top_features(factors=factors, views=views, n_features=n_features, df=True)
     features_to_label["to_label"] = True
     wm = (
         features_to_label.loc[:, ["feature", "view", "factor", "to_label"]]
@@ -169,11 +167,9 @@ def plot_weights(
         g.legend().remove()
 
         # Label some points
-        for fi, factor in enumerate(wm_view.factor.cat.categories):
+        for fi, _factor in enumerate(wm_view.factor.cat.categories):
             for sign_i in [1, -1]:
-                to_label = features_to_label.query(
-                    "factor == @factor & view == @view"
-                ).feature.tolist()
+                features_to_label.query("factor == @factor & view == @view").feature.tolist()
                 w_set = wm_view.query(
                     "factor == @factor & value * @sign_i > 0 & feature == @to_label & view == @view"
                 ).sort_values("abs_value", ascending=False)
@@ -183,20 +179,20 @@ def plot_weights(
                 y_prev = y_start_pos
 
                 for i, row in enumerate(w_set.iterrows()):
-                    name, point = row
+                    _name, point = row
                     y_loc = y_prev + y_offset if i != 0 else y_start_pos
 
                     g.annotate(
                         point["feature"],
                         xy=(point.value, fi),
                         xytext=(x_start_pos, y_loc),
-                        arrowprops=dict(
-                            arrowstyle="-",
-                            connectionstyle="arc3",
-                            color=line_color,
-                            alpha=line_alpha,
-                            linewidth=line_width,
-                        ),
+                        arrowprops={
+                            "arrowstyle": "-",
+                            "connectionstyle": "arc3",
+                            "color": line_color,
+                            "alpha": line_alpha,
+                            "linewidth": line_width,
+                        },
                         horizontalalignment="left" if sign_i > 0 else "right",
                         size=label_size,
                         color="black",
@@ -209,9 +205,7 @@ def plot_weights(
         g.set(ylabel="", xlabel="Feature weight", title=view)
 
         if zero_line:
-            axes[ri, ci].axvline(
-                0, ls="--", color="lightgrey", linewidth=zero_line_width, zorder=0
-            )
+            axes[ri, ci].axvline(0, ls="--", color="lightgrey", linewidth=zero_line_width, zorder=0)
 
     # Remove unused axes
     for i in range(len(view_vars), ncols * nrows):
@@ -280,9 +274,7 @@ def plot_weights_ranked(
         kwargs["color"] = "black"
 
     # Construct the plot
-    ax = sns.lineplot(
-        x="rank", y="value", data=w, markers=True, dashes=False, linewidth=0.5, **kwargs
-    )
+    ax = sns.lineplot(x="rank", y="value", data=w, markers=True, dashes=False, linewidth=0.5, **kwargs)
     sns.despine(offset=10, trim=True, ax=ax)
 
     # Plot top features as dots
@@ -302,9 +294,7 @@ def plot_weights_ranked(
     y_start_pos = w[w.value > 0].sort_values("abs_rank").iloc[0].value
 
     y_prev = y_start_pos
-    for i, point in (
-        w[(w["abs_rank"] < n_features) & (w["value"] >= 0)].reset_index().iterrows()
-    ):
+    for i, point in w[(w["abs_rank"] < n_features) & (w["value"] >= 0)].reset_index().iterrows():
         y_loc = y_prev - y_repel_coef if i != 0 else y_start_pos
         y_loc = min(point["value"], y_loc) if attract_to_points else y_loc
         ax.text(
@@ -322,9 +312,7 @@ def plot_weights_ranked(
     y_start_neg = w[w.value < 0].sort_values("abs_rank").iloc[0].value
 
     y_prev = y_start_neg
-    for i, point in (
-        w[(w["abs_rank"] < n_features) & (w["value"] < 0)].reset_index().iterrows()
-    ):
+    for i, point in w[(w["abs_rank"] < n_features) & (w["value"] < 0)].reset_index().iterrows():
         y_loc = y_prev + y_repel_coef if i != 0 else y_start_neg
         y_loc = max(point["value"], y_loc) if attract_to_points else y_loc
         ax.text(
@@ -388,9 +376,7 @@ def plot_weights_scaled(
         w.rename_axis("feature")
         .reset_index()
         .melt(var_name="factor", id_vars=["feature"])
-        .assign(
-            value_abs=lambda x: np.abs(x.value), value_sign=lambda x: np.sign(x.value)
-        )
+        .assign(value_abs=lambda x: np.abs(x.value), value_sign=lambda x: np.sign(x.value))
         .sort_values("value_abs", ascending=False)
         .head(n_features)
         .sort_values(["factor", "value_sign"], ascending=True)
@@ -406,9 +392,7 @@ def plot_weights_scaled(
     ax.set_aspect(1)
     for factor in wm.factor.unique():
         for sign in wm[wm.factor == factor].value_sign.unique():
-            feature_set = wm[
-                (wm.factor == factor) & (wm.value_sign == sign)
-            ].feature.values
+            feature_set = wm[(wm.factor == factor) & (wm.value_sign == sign)].feature.values
             w_set = w.loc[feature_set].sort_values("y", ascending=False)
             y_start_pos = w_set.y.max()
             y_prev = y_start_pos
@@ -434,10 +418,10 @@ def plot_weights_scaled(
 
 def plot_weights_heatmap(
     model: mofa_model,
-    factors: Union[int, List[int]] = None,
+    factors: Union[int, list[int]] | None = None,
     view=0,
-    n_features: int = None,
-    w_threshold: float = None,
+    n_features: int | None = None,
+    w_threshold: float | None = None,
     w_abs: bool = False,
     only_positive: bool = False,
     only_negative: bool = False,
@@ -503,7 +487,6 @@ def plot_weights_heatmap(
     wm["factor"] = wm["factor"].astype("category")
 
     if only_positive and only_negative:
-        print("Please specify either only_positive or only_negative")
         sys.exit(1)
     elif only_positive:
         wm = wm[wm.value > 0]
@@ -516,9 +499,7 @@ def plot_weights_heatmap(
         if n_features is None:
             n_features = n_features_default
         # Get a subset of features
-        wm = wm.sort_values(["factor", "value_abs"], ascending=False).groupby(
-            "factor", observed=False
-        )
+        wm = wm.sort_values(["factor", "value_abs"], ascending=False).groupby("factor", observed=False)
         if w_threshold is None:
             features = wm.head(n_features).feature.unique()
         else:
@@ -541,22 +522,18 @@ def plot_weights_heatmap(
         **kwargs,
     )
 
-    cg.ax_heatmap.set_xticklabels(
-        cg.ax_heatmap.xaxis.get_ticklabels(), rotation=90, size=xticklabels_size
-    )
-    cg.ax_heatmap.set_yticklabels(
-        cg.ax_heatmap.yaxis.get_ticklabels(), rotation=0, size=yticklabels_size
-    )
+    cg.ax_heatmap.set_xticklabels(cg.ax_heatmap.xaxis.get_ticklabels(), rotation=90, size=xticklabels_size)
+    cg.ax_heatmap.set_yticklabels(cg.ax_heatmap.yaxis.get_ticklabels(), rotation=0, size=yticklabels_size)
 
     return cg
 
 
 def plot_weights_dotplot(
     model: mofa_model,
-    factors: Union[int, List[int]] = None,
+    factors: Union[int, list[int]] | None = None,
     view=0,
-    n_features: int = None,
-    w_threshold: float = None,
+    n_features: int | None = None,
+    w_threshold: float | None = None,
     w_abs: bool = False,
     only_positive: bool = False,
     only_negative: bool = False,
@@ -628,7 +605,6 @@ def plot_weights_dotplot(
     wm["factor"] = wm["factor"].astype("category")
 
     if only_positive and only_negative:
-        print("Please specify either only_positive or only_negative")
         sys.exit(1)
     elif only_positive:
         wm = wm[wm.value > 0]
@@ -655,9 +631,7 @@ def plot_weights_dotplot(
         if w_threshold is None:
             features = wm_g.head(n_features).feature.unique()
         else:
-            features = (
-                wm_g[wm_g.value_abs >= w_threshold].head(n_features).feature.unique()
-            )
+            features = wm_g[wm_g.value_abs >= w_threshold].head(n_features).feature.unique()
 
     wm = wm[wm.feature.isin(features)]
 
@@ -708,18 +682,14 @@ def plot_weights_dotplot(
         g.legend().remove()
 
         norm = plt.Normalize(wm_view.value.min(), wm_view.value.max())
-        cmap = (
-            palette
-            if palette is not None
-            else sns.diverging_palette(220, 20, as_cmap=True)
-        )
+        cmap = palette if palette is not None else sns.diverging_palette(220, 20, as_cmap=True)
         sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
         sm.set_array([])
         try:
             g.figure.colorbar(sm, ax=axes[ri, ci])
             g.get_legend().remove()
         except Exception:
-            warn("Cannot make a proper colorbar")
+            warn("Cannot make a proper colorbar", stacklevel=2)
 
         plt.draw()
 
@@ -767,11 +737,7 @@ def plot_weights_scatter(
     label_size : optional
         Font size of feature labels (default is 5)
     """
-    w = (
-        model.get_weights(views=view, factors=[x, y], df=True)
-        .rename_axis("feature")
-        .reset_index()
-    )
+    w = model.get_weights(views=view, factors=[x, y], df=True).rename_axis("feature").reset_index()
 
     # Get features to label
     wm = w.melt(id_vars="feature", var_name="factor", value_name="value")
@@ -790,15 +756,13 @@ def plot_weights_scatter(
     add_text = plot.ax_joint.text if hist else plot.text
     if n_features is not None and n_features > 0:
         # Get a subset of features
-        wm = wm.sort_values(["factor", "value_abs"], ascending=False).groupby(
-            "factor", observed=False
-        )
+        wm = wm.sort_values(["factor", "value_abs"], ascending=False).groupby("factor", observed=False)
         features = wm.head(n_features).feature.unique()
         w_label = w[w.feature.isin(features)].set_index("feature")
         del wm
 
         # Add labels to the plot
-        for i, point in w_label.iterrows():
+        for _i, point in w_label.iterrows():
             add_text(
                 point[x],
                 point[y],
@@ -814,7 +778,7 @@ def plot_weights_scatter(
 
 def plot_weights_correlation(
     model: mofa_model,
-    factors: Optional[Union[int, List[int]]] = None,
+    factors: Union[int, list[int]] | None = None,
     views=None,
     covariates=None,
     linewidths=0,
@@ -869,7 +833,7 @@ def plot_weights_correlation(
         mask = np.triu(np.ones_like(corr, dtype=np.bool))
 
     # Set up the matplotlib figure
-    f, ax = plt.subplots(figsize=(11, 9))
+    _f, _ax = plt.subplots(figsize=(11, 9))
 
     if cmap is None:
         # Generate a custom diverging colormap
