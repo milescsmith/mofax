@@ -666,7 +666,9 @@ class mofa_model:
             features = list(set(features))  # make feature names unique
 
         f_i = np.where(pd_features.feature.isin(features))[0]
-        assert len(f_i) > 0, "Requested features are not found"
+        if len(f_i) == 0:
+            msg="Requested features are not found"
+            raise ValueError(msg)
         pd_features = pd_features.loc[f_i]
 
         # Create numpy array
@@ -823,9 +825,9 @@ class mofa_model:
                 views = [self.views[m] if isinstance(m, int) else m for m in views]
             # iterable of strings
             elif all(isinstance(m, str) for m in views):
-                assert set(views).issubset(set(self.views)), (
-                    f"some of the elements of the 'views' are not valid views. Views names of this model are {', '.join(self.views)}."
-                )
+                if not set(views).issubset(set(self.views)):
+                    msg=f"some of the elements of the 'views' are not valid views. Views names of this model are {', '.join(self.views)}."
+                    raise ValueError(msg)
             else:
                 msg = "elements of the 'view' vector have to be either integers or strings"
                 raise ValueError(msg)

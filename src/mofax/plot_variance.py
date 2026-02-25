@@ -65,12 +65,14 @@ def plot_r2(
     vmin = 0 if vmin is None else vmin
 
     split_by = [dim for dim in ["Group", "View", "Factor"] if dim not in [x, y]]
-    assert len(split_by) == 1, "x and y values should be different and be one of Group, View, or Factor"
+    if len(split_by) != 1:
+        msg = "x and y values should be different and be one of Group, View, or Factor"
+        raise ValueError(msg)
     split_by = split_by[0]
 
     split_by_items = r2[split_by].unique()
     fig, axes = plt.subplots(ncols=len(split_by_items), sharex=True, sharey=True)
-    cbar_ax = fig.add_axes([0.91, 0.3, 0.03, 0.4])
+    cbar_ax = fig.add_axes(rect=(0.91, 0.3, 0.03, 0.4))
     if len(split_by_items) == 1:
         axes = [axes]
 

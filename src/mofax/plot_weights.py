@@ -169,7 +169,7 @@ def plot_weights(
             for sign_i in [1, -1]:
                 to_label = features_to_label.query("factor == @_factor & view == @view").feature.tolist()  # noqa: F841
                 w_set = wm_view.query(
-                    "factor == @factor & value * @sign_i > 0 & feature == @to_label & view == @view"
+                    "factor == @_factor & value * @sign_i > 0 & feature == @to_label & view == @view"
                 ).sort_values("abs_value", ascending=False)
 
                 x_start_pos = sign_i * (w_set.abs_value.max() + x_offset)

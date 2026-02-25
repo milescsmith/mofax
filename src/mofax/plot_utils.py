@@ -15,25 +15,31 @@ def _plot_grid(plot_func, data, x, y, color=None, **kwargs):
     # Determine split_axis
     if _is_iter(x):
         if _is_iter(y):
-            assert not _is_iter(color), MSG_ONLY_2D
+            if _is_iter(color):
+                raise ValueError(MSG_ONLY_2D)
         elif _is_iter(color):
-            assert not _is_iter(y), MSG_ONLY_2D
+            if _is_iter(y):
+                raise ValueError(MSG_ONLY_2D)
         else:
             return _plot_grid_from_1d(plot_func, data, x, y, color, "x", **kwargs)
         return _plot_2d_grid(plot_func, data, x, y, color, **kwargs)
     elif _is_iter(y):
         if _is_iter(x):
-            assert not _is_iter(color), MSG_ONLY_2D
+            if _is_iter(color):
+                raise ValueError(MSG_ONLY_2D)
         elif _is_iter(color):
-            assert not _is_iter(x), MSG_ONLY_2D
+            if _is_iter(x):
+                raise ValueError(MSG_ONLY_2D)
         else:
             return _plot_grid_from_1d(plot_func, data, x, y, color, "y", **kwargs)
         return _plot_2d_grid(plot_func, data, x, y, color, **kwargs)
     elif _is_iter(color):
         if _is_iter(x):
-            assert not _is_iter(y), MSG_ONLY_2D
+            if _is_iter(y):
+                raise ValueError(MSG_ONLY_2D)
         elif _is_iter(y):
-            assert not _is_iter(x), MSG_ONLY_2D
+            if _is_iter(x):
+                raise ValueError(MSG_ONLY_2D)
         else:
             return _plot_grid_from_1d(plot_func, data, x, y, color, "color", **kwargs)
         return _plot_2d_grid(plot_func, data, x, y, color, **kwargs)
