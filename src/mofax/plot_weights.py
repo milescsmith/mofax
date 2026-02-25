@@ -1,6 +1,5 @@
 import sys
 from collections.abc import Iterable
-from typing import List, Optional, Union
 from warnings import warn
 
 import matplotlib.pyplot as plt
@@ -10,32 +9,31 @@ import seaborn as sns
 from matplotlib import rcParams
 
 from .core import mofa_model
-from .utils import *
 
 ### WEIGHTS ###
 
 
 def plot_weights(
     model: mofa_model,
-    factors=None,
-    views=None,
+    factors: str | int | list[str] | None = None,
+    views: str | int | list[str] | None = None,
     n_features: int = 5,
     w_scaled: bool = False,
     w_abs: bool = False,
-    size=2,
-    color="black",
-    label_size=5,
-    x_offset=0.01,
-    y_offset=0.15,
-    jitter=0.01,
-    line_width=0.5,
-    line_color="black",
-    line_alpha=0.2,
-    zero_line=True,
-    zero_line_width=1,
-    ncols=4,
-    sharex=True,
-    sharey=False,
+    size: int = 2,
+    color: str = "black",  # really should be an enum or Literal
+    label_size: int = 5,
+    x_offset: float = 0.01,
+    y_offset: float = 0.15,
+    jitter: float = 0.01,
+    line_width: float = 0.5,
+    line_color: str = "black",
+    line_alpha: float = 0.2,
+    zero_line: bool = True,
+    zero_line_width: int = 1,
+    ncols: int = 4,
+    sharex: bool = True,
+    sharey: bool = False,
     **kwargs,
 ):
     """
@@ -218,15 +216,15 @@ def plot_weights(
 
 def plot_weights_ranked(
     model: mofa_model,
-    factor="Factor1",
-    view=0,
+    factor: str = "Factor1",
+    view: int = 0,
     n_features: int = 10,
     size: int = 25,
-    label_size=5,
-    x_rank_offset=10,
-    x_rank_offset_neg=0,
-    y_repel_coef=0.03,
-    attract_to_points=True,
+    label_size: int = 5,
+    x_rank_offset: int = 10,
+    x_rank_offset_neg: int = 0,
+    y_repel_coef: float = 0.03,
+    attract_to_points: bool = True,
     **kwargs,
 ):
     """
@@ -335,14 +333,14 @@ def plot_weights_ranked(
 
 def plot_weights_scaled(
     model: mofa_model,
-    x="Factor1",
-    y="Factor2",
-    view=0,
+    x: str = "Factor1",
+    y: str = "Factor2",
+    view: int = 0,
     n_features: int = 10,
     w_scaled: bool = True,
-    label_size=5,
-    y_repel_coef=0.05,
-    attract_to_points=True,
+    label_size: int = 5,
+    y_repel_coef: float = 0.05,
+    attract_to_points: bool = True,
     **kwargs,
 ):
     """
@@ -418,19 +416,19 @@ def plot_weights_scaled(
 
 def plot_weights_heatmap(
     model: mofa_model,
-    factors: Union[int, list[int]] | None = None,
-    view=0,
+    factors: int | list[int] | None = None,
+    view: int = 0,
     n_features: int | None = None,
     w_threshold: float | None = None,
     w_abs: bool = False,
     only_positive: bool = False,
     only_negative: bool = False,
-    features_col: pd.DataFrame = None,
-    cmap=None,
-    xticklabels_size=10,
-    yticklabels_size=None,
-    cluster_factors=True,
-    cluster_features=True,
+    features_col: pd.DataFrame | None = None,
+    cmap: str | None = None,
+    xticklabels_size: int = 10,
+    yticklabels_size: int | None = None,
+    cluster_factors: bool = True,
+    cluster_features: bool = True,
     **kwargs,
 ):
     """
@@ -530,8 +528,8 @@ def plot_weights_heatmap(
 
 def plot_weights_dotplot(
     model: mofa_model,
-    factors: Union[int, list[int]] | None = None,
-    view=0,
+    factors: int | list[int] | None = None,
+    view: int = 0,
     n_features: int | None = None,
     w_threshold: float | None = None,
     w_abs: bool = False,
@@ -540,11 +538,11 @@ def plot_weights_dotplot(
     palette=None,
     size: int = 30,
     linewidth: int = 1,
-    xticklabels_size=8,
-    yticklabels_size=5,
-    ncols=1,
-    sharex=True,
-    sharey=False,
+    xticklabels_size: int = 8,
+    yticklabels_size: int = 5,
+    ncols: int = 1,
+    sharex: bool = True,
+    sharey: bool = False,
     **kwargs,
 ):
     """
@@ -660,11 +658,11 @@ def plot_weights_dotplot(
     if nrows == 1:
         axes = np.array(axes).reshape(1, -1)
 
-    for m, view in enumerate(view_vars):
+    for m, _view in enumerate(view_vars):
         ri = m // ncols
         ci = m % ncols
 
-        wm_view = wm.query("view == @view")
+        wm_view = wm.query("view == @_view")
 
         # Construct the plot
         g = sns.scatterplot(
@@ -709,10 +707,10 @@ def plot_weights_dotplot(
 
 def plot_weights_scatter(
     model: mofa_model,
-    x="Factor1",
-    y="Factor2",
-    view=0,
-    hist=False,
+    x: str = "Factor1",
+    y: str = "Factor2",
+    view: int = 0,
+    hist: bool = False,
     n_features: int = 10,
     label_size: int = 5,
     **kwargs,
@@ -778,7 +776,7 @@ def plot_weights_scatter(
 
 def plot_weights_correlation(
     model: mofa_model,
-    factors: Union[int, list[int]] | None = None,
+    factors: int | list[int] | None = None,
     views=None,
     covariates=None,
     linewidths=0,

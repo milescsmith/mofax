@@ -1,14 +1,13 @@
 import sys
 import warnings
 from collections.abc import Iterable
-from os import path
 from pathlib import Path
 
 import h5py
 import numpy as np
 import pandas as pd
+import umap
 
-from rich.table import Table
 from .utils import (
     _load_covariates,
     _load_features_metadata,
@@ -28,9 +27,9 @@ class mofa_model:
     in the form of Pandas dataframes, and data as a NumPy array.
     """
 
-    def __init__(self, filepath: Path, mode="r"):
-        self.filepath = filepath
-        self.filename = filepath.name
+    def __init__(self, filepath: str | Path, mode="r"):
+        self.filepath = filepath if isinstance(filepath, Path) else Path(filepath)
+        self.filename = self.filepath.name
         # this seems like a really bad idea? as long as the instance exists, the file is open
         # anything messing with the model should probably be wrapped in a context manager?
         self.model = h5py.File(filepath, mode)
@@ -202,7 +201,11 @@ class mofa_model:
         if self.model.__bool__():  # if the connection is still open
             self.model.close()
 
-    def get_shape(self, groups: str | list[str] | int | list[int] | None = None, views: str | list[str] | int | list[int] | None = None) -> tuple[int, int]:
+    def get_shape(
+        self,
+        groups: str | list[str] | int | list[int] | None = None,
+        views: str | list[str] | int | list[int] | None = None,
+    ) -> tuple[int, int]:
         """
         Get the shape of all the data, samples (cells) and features pulled across groups and views.
 
@@ -560,8 +563,8 @@ class mofa_model:
             model_groups = bool(self.options["smooth"]["model_groups"].item().decode())
 
         if not model_groups or self.ngroups == 1:
-            Kg = np.ones(shape=(self.nfactors, self.ngroups, self.ngroups))
-            return Kg
+            kg = np.ones(shape=(self.nfactors, self.ngroups, self.ngroups))
+            return kg
         elif self.training_stats and "Kg" in self.training_stats:
             return self.training_stats["Kg"]
         else:
@@ -711,7 +714,6 @@ class mofa_model:
         random_state
             random seed
         """
-        import umap
 
         # Get factors
         data = self.get_factors(groups, factors)
@@ -840,12 +842,12 @@ class mofa_model:
             # single group provided as a string
             case str():
                 groups = [groups]
-        # single group provided as an integer
+            # single group provided as an integer
             case int():
                 groups = [self.groups[groups]]
-        # multiple groups provided as an iterable
+            # multiple groups provided as an iterable
             case Iterable() if not isinstance(groups, str):
-            # (to-do) check that all elements are of the same type
+                # (to-do) check that all elements are of the same type
                 # iterable of booleans
                 if all(isinstance(g, bool) for g in groups):
                     msg = f"Please provide group names as string or group indices as integers, boolean values are not accepted. Group names of this model are {', '.join(self.groups)}."
@@ -865,7 +867,6 @@ class mofa_model:
                 msg = "groups argument not recognised"
                 raise ValueError(msg)
         return groups
-
 
     def _check_factors(self, factors, unique=False):
         # Use all factors by default

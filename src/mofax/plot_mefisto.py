@@ -1,5 +1,4 @@
 from functools import partial
-from typing import List, Union
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -9,13 +8,12 @@ from matplotlib import rcParams
 
 from .core import mofa_model
 from .plot_utils import _plot_grid
-from .utils import *
 from .utils import _make_iterable
 
 
 def plot_interpolated_factors(
     model: mofa_model,
-    factors: Union[int, list[int]] | None = None,
+    factors: int | list[int] | None = None,
     groups=None,
     only_mean: bool = False,
     show_observed: bool = True,
@@ -218,9 +216,9 @@ def plot_group_kernel(model, groups=None, factors=None, palette=None, vmin=-1, v
     group_indices = [np.where(all_groups == gr)[0][0] for gr in groups]
 
     # Get group kernels
-    Kgs = model.get_group_kernel()[factor_indices, :, :][:, group_indices, :][:, :, group_indices]
+    kgs = model.get_group_kernel()[factor_indices, :, :][:, group_indices, :][:, :, group_indices]
 
-    df_list = [pd.DataFrame(Kgs[i], index=groups, columns=groups) for i in range(Kgs.shape[0])]
+    df_list = [pd.DataFrame(kgs[i], index=groups, columns=groups) for i in range(kgs.shape[0])]
 
     if palette is None:
         palette = "RdBu_r"
@@ -282,10 +280,12 @@ def plot_group_kernel(model, groups=None, factors=None, palette=None, vmin=-1, v
 
 
 def plot_sharedness(model, groups=None, factors=None, color="#B8CF87", return_data=False, **kwargs):
-    GROUPS_MSG = "Multiple groups are required to determine sharedness"
-    assert model.ngroups > 1, GROUPS_MSG
+    groups_msg = "Multiple groups are required to determine sharedness"
+    if model.ngroups <= 1:
+        raise ValueError(groups_msg)
     if groups is not None:
-        assert not isinstance(groups, str) and len(groups) > 1, GROUPS_MSG
+        if isinstance(groups, str) or (len(groups) <= 1):
+            raise ValueError(groups_msg)
 
     model.get_factors(factors=factors, groups=groups)
     factor_indices, factors = model._check_factors(factors, unique=True)
@@ -295,10 +295,10 @@ def plot_sharedness(model, groups=None, factors=None, color="#B8CF87", return_da
     group_indices = [np.where(all_groups == gr)[0][0] for gr in groups]
 
     # Get group kernels
-    Kgs = model.get_group_kernel()[factor_indices, :, :][:, group_indices, :][:, :, group_indices]
+    kgs = model.get_group_kernel()[factor_indices, :, :][:, group_indices, :][:, :, group_indices]
 
     # Calculate distance
-    gr = np.array([np.abs(Kgs[i, :, :])[np.tril(Kgs[i, :, :], -1).astype(bool)].mean() for i in range(Kgs.shape[0])])
+    gr = np.array([np.abs(kgs[i, :, :])[np.tril(kgs[i, :, :], -1).astype(bool)].mean() for i in range(kgs.shape[0])])
 
     df = pd.DataFrame({"factor": factors, "shared": gr, "non_shared": 1 - gr})
 

@@ -11,7 +11,7 @@ from scipy.stats import pearsonr
 
 from .core import mofa_model
 from .plot_utils import _plot_grid
-from .utils import _is_iter, _make_iterable, maybe_factor_indices_to_factors
+from .utils import _is_iter, _make_iterable, maybe_factor_indices_to_factors, padjust_fdr_2d
 
 ### FACTORS ###
 
@@ -59,10 +59,9 @@ def plot_factors_scatter(
         z = model.fetch_values([x, y], unique=True)
 
         # Add group and colour information
-        vars = [group_label, *color_vars]
-        vars = [v for v in vars if v not in z.columns]
-        if any(not (not (i)) for i in vars):
-            meta = model.fetch_values(variables=vars)
+        _vars = [v for v in [group_label, *color_vars] if v not in z.columns]
+        if any(not (not (i)) for i in _vars):
+            meta = model.fetch_values(variables=_vars)
             z = z.rename_axis("sample").reset_index()
             z = z.set_index("sample").join(meta).reset_index()
 
@@ -165,10 +164,9 @@ def _plot_factors(
     z = model.fetch_values([*x_vars, *y_vars], unique=True)
 
     # Add group and colour information
-    vars = [group_label, *color_vars]
-    vars = [v for v in vars if v not in z.columns]
-    if any(not (not (i)) for i in vars):
-        meta = model.fetch_values(variables=vars)
+    _vars = [v for v in [group_label, *color_vars] if v not in z.columns]
+    if any(not (not (i)) for i in _vars):
+        meta = model.fetch_values(variables=_vars)
         z = z.rename_axis("sample").reset_index()
         z = z.set_index("sample").join(meta).reset_index()
 
@@ -238,9 +236,9 @@ def plot_factors_violin(
     z = z.melt(id_vars="sample", var_name="factor", value_name="value")
 
     # Add group and colour information
-    vars = [group_label, *color_vars]
-    if any(not (not (i)) for i in vars):
-        meta = model.fetch_values(variables=vars)
+    _vars = [group_label, *color_vars]
+    if any(not (not (i)) for i in _vars):
+        meta = model.fetch_values(variables=_vars)
         z = z.set_index("sample").join(meta).reset_index()
 
     # Subset groups (incl. custom groups of samples)
@@ -368,10 +366,9 @@ def plot_factors_umap(
     x, y, *_ = embedding.columns
 
     # Add group and colour information
-    vars = [group_label, *color_vars]
-    vars = [v for v in vars if v not in embedding.columns.values]
-    if any(not (not (i)) for i in vars):
-        meta = model.fetch_values(variables=vars)
+    _vars = [v for v in [group_label, *color_vars] if v not in embedding.columns.values]
+    if any(not (not (i)) for i in _vars):
+        meta = model.fetch_values(variables=_vars)
         embedding = embedding.rename_axis("sample").reset_index()
         embedding = embedding.set_index("sample").join(meta).reset_index()
 
